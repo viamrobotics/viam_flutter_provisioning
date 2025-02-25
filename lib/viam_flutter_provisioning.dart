@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:viam_sdk/viam_sdk.dart';
 
+// TODO: way to handle if device is using micro-rdk
 class ViamProvisioniong {
   final ProvisioningClient provisioningClient;
 
@@ -32,5 +33,10 @@ class ViamProvisioniong {
   Future<void> setSmartMachineCredentials(String id, String secret) async {
     // TODO: need a mainPart for this id and secret! we create a new robot when we do this currently
     await provisioningClient.setSmartMachineCredentials(id: id, secret: secret);
+  }
+
+  // TODO: could sort of modify to return when it's online only
+  Future<GetSmartMachineStatusResponse> getSmartMachineStatus() async {
+    return await provisioningClient.getSmartMachineStatus();
   }
 }

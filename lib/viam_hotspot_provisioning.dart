@@ -2,17 +2,12 @@ import 'dart:async';
 
 import 'package:viam_sdk/viam_sdk.dart';
 
-// TODO: way to handle if device is using micro-rdk
-class ViamProvisioniong {
+class ViamHotspotProvisioning {
   final ProvisioningClient provisioningClient;
 
-  ViamProvisioniong({required this.provisioningClient});
-  // TODO: list local bluetooth devices (do this w/ flutter_blue and show in example app)
-  // TODO: connect/auto-pair to the bluetooth device
+  ViamHotspotProvisioning({required this.provisioningClient});
 
-  // TODO: add logic for listing wifi networks* (though currently hotspot connect happens by going to settings)
-
-  /// Gets a list of networks from viam-agent that are visible to the smart machine.
+  /// Gets a list of networks from viam-agent that are visible to the smart machine. (this only works for hotspot currently)
   Future<List<NetworkInfo>> getNetworkList() async {
     final response = await provisioningClient.getNetworkList();
     return response.toList()..sort((b, a) => a.signal.compareTo(b.signal));

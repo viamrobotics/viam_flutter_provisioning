@@ -25,7 +25,7 @@ class ViamBluetoothProvisioning {
 
   // TODO: NEXT - SCAN AND SHOW IN LIST!
   // take in optinal arg w/ default value of null or empty for device ids we scan for
-  Stream<DiscoveredBlePeripheral> scanForDevicesAsStream() async* {
+  Stream<DiscoveredBlePeripheral> scanForDevices() async* {
     final scanStream = ble.scanForPeripherals([]);
     await for (final device in scanStream) {
       yield device;
@@ -34,7 +34,7 @@ class ViamBluetoothProvisioning {
 
   // TODO: connect
 
-  // TODO: read network list
+  // TODO: read network list (and display on screen)
 
   // TODO: write ssid,pw,secret,part-id
 }

@@ -67,7 +67,6 @@ class _HomePage extends State<HomePage> {
             title: Text(_uniqueDevices[index].name.isNotEmpty ? _uniqueDevices[index].name : 'Untitled'),
             subtitle: Text(_uniqueDevices[index].id),
             onTap: () {
-              // connect on tap
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text('Tapped on item ${_uniqueDevices[index].name.isNotEmpty ? _uniqueDevices[index].name : 'Untitled'}'),

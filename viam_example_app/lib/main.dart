@@ -37,7 +37,8 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   StreamSubscription<DiscoveredBlePeripheral>? _scanSubscription;
-  List<DiscoveredBlePeripheral> _devices = [];
+  final Set<DiscoveredBlePeripheral> _devicesSet = {};
+  List<DiscoveredBlePeripheral> _uniqueDevices = [];
 
   @override
   void initState() {
@@ -53,22 +54,19 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _initialize() async {
-    try {
-      await widget.provisioning.initialize(poweredOn: (poweredOn) {
-        if (poweredOn) {
-          _startScan();
-        }
-      });
-    } catch (e) {
-      print(e);
-    }
+    await widget.provisioning.initialize(poweredOn: (poweredOn) {
+      if (poweredOn) {
+        _startScan();
+      }
+    });
   }
 
   void _startScan() {
     _scanSubscription = widget.provisioning.scanForDevices().listen((device) {
       setState(() {
-        _devices.add(device);
-        print('Devices: ${_devices.length}');
+        _devicesSet.add(device);
+        _uniqueDevices = _devicesSet.toList(); // TODO: sort by how close device is..?
+        print('Devices: ${_uniqueDevices.length}');
       });
     }, onError: (error) {
       print('Error scanning: $error');
@@ -87,16 +85,18 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: ListView.builder(
-        itemCount: _devices.length,
+        itemCount: _uniqueDevices.length,
         itemBuilder: (context, index) {
           return ListTile(
-            leading: Icon(Icons.circle, color: Colors.blue),
-            title: Text(_devices[index].name),
-            subtitle: Text(_devices[index].id),
+            leading: Icon(Icons.bluetooth, color: Colors.blue),
+            title: Text(_uniqueDevices[index].name.isNotEmpty ? _uniqueDevices[index].name : 'Untitled'),
+            subtitle: Text(_uniqueDevices[index].id),
             onTap: () {
               // connect on tap
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Tapped on item: ${_devices[index].name}')),
+                SnackBar(
+                  content: Text('Tapped on item ${_uniqueDevices[index].name.isNotEmpty ? _uniqueDevices[index].name : 'Untitled'}'),
+                ),
               );
             },
           );

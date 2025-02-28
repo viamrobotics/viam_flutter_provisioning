@@ -26,8 +26,6 @@ dependencies:
     sdk: flutter
   viam_flutter_provisioning:
     path: ../
-  permission_handler: 11.3.1
-
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

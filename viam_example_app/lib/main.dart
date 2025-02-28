@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:viam_flutter_provisioning/viam_bluetooth_provisioning.dart';
-import 'package:viam_flutter_provisioning/viam_hotspot_provisioning.dart';
 
 void main() {
   runApp(const MyApp());

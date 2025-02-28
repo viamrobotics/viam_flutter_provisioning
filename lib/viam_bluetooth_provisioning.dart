@@ -1,40 +1,38 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:blev/ble.dart';
 import 'package:blev/ble_central.dart';
 
-// TODO: way to handle if device is using micro-rdk
 class ViamBluetoothProvisioning {
-  late BleCentral ble;
-  bool isPoweredOn = false;
+  BleCentral? _ble;
+  bool _isPoweredOn = false;
 
-  // ASYNC init okay..?
-  init() async {
-    ble = await BleCentral.create();
-    ble.getState().listen((state) {
-      // switch..
+  ViamBluetoothProvisioning();
+
+  Future<void> initialize({Function(bool)? poweredOn}) async {
+    _ble = await BleCentral.create();
+    _ble?.getState().listen((state) {
       if (state == AdapterState.poweredOn) {
-        isPoweredOn = true; // must be true to scan or connect..
+        _isPoweredOn = true;
+        poweredOn?.call(true);
       } else {
-        isPoweredOn = false;
+        _isPoweredOn = false;
+        poweredOn?.call(false);
       }
     });
   }
 
-  // TODO: NEXT - SCAN AND SHOW IN LIST!
-  // take in optinal arg w/ default value of null or empty for device ids we scan for
-  Stream<DiscoveredBlePeripheral> scanForDevices() async* {
-    final scanStream = ble.scanForPeripherals([]);
-    await for (final device in scanStream) {
-      yield device;
+  Stream<DiscoveredBlePeripheral> scanForDevices({List<String> serviceIds = const []}) {
+    if (_ble == null) {
+      throw Exception('Bluetooth is not initialized');
     }
+    if (!_isPoweredOn) {
+      throw Exception('Bluetooth is not powered on');
+    }
+    return _ble!.scanForPeripherals(serviceIds);
   }
 
   // TODO: connect
-
   // TODO: read network list (and display on screen)
-
   // TODO: write ssid,pw,secret,part-id
 }

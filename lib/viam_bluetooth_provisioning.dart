@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:blev/ble.dart';
 import 'package:blev/ble_central.dart';
 
+export 'package:blev/ble_central.dart';
+
 class ViamBluetoothProvisioning {
   BleCentral? _ble;
   bool _isPoweredOn = false;
@@ -22,7 +24,7 @@ class ViamBluetoothProvisioning {
     });
   }
 
-  Stream<DiscoveredBlePeripheral> scanForDevices({List<String> serviceIds = const []}) {
+  Stream<DiscoveredBlePeripheral> scanForPeripherals({List<String> serviceIds = const []}) {
     if (_ble == null) {
       throw Exception('Bluetooth is not initialized');
     }
@@ -32,7 +34,30 @@ class ViamBluetoothProvisioning {
     return _ble!.scanForPeripherals(serviceIds);
   }
 
-  // TODO: connect
-  // TODO: read network list (and display on screen)
-  // TODO: write ssid,pw,secret,part-id
+  Future<ConnectedBlePeripheral> connectToPeripheral(DiscoveredBlePeripheral peripheral) async {
+    if (_ble == null) {
+      throw Exception('Bluetooth is not initialized');
+    }
+    if (!_isPoweredOn) {
+      throw Exception('Bluetooth is not powered on');
+    }
+    return await _ble!.connectToPeripheral(peripheral.id);
+  }
+
+  Future<void> readNetworkList(ConnectedBlePeripheral peripheral) async {
+    // TODO: use knowledge of services/charactericts to read network list + return model that can be displayed
+    // find service with id..
+    // find characteristic with id..
+    // read characteristic and convert bytes to string, then parse into models
+  }
+
+  Future<void> writeNetworkConfig(
+    ConnectedBlePeripheral peripheral,
+    String ssid,
+    String pw,
+  ) async {
+    // TODO: ..
+  }
+
+  // TODO: secret + part-id + app address* here in separate method?
 }

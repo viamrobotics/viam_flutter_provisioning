@@ -4,5 +4,6 @@
         "editor.rulers": [
             140
         ],
+        "editor.inlayHints.enabled": "off"
     }
 }

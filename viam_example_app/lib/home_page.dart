@@ -16,7 +16,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePage extends State<HomePage> {
   StreamSubscription<DiscoveredBlePeripheral>? _scanSubscription;
-  final Set<DiscoveredBlePeripheral> _devicesSet = {};
+  final Set<String> _deviceIds = {};
   List<DiscoveredBlePeripheral> _uniqueDevices = [];
 
   @override
@@ -42,8 +42,12 @@ class _HomePage extends State<HomePage> {
   void _startScan() {
     _scanSubscription = widget.provisioning.scanForDevices().listen((device) {
       setState(() {
-        _devicesSet.add(device);
-        _uniqueDevices = _devicesSet.toList(); // TODO: sort by how close device is..?
+        if (!_deviceIds.contains(device.id)) {
+          _deviceIds.add(device.id);
+          _uniqueDevices.add(device);
+        }
+        _uniqueDevices = _uniqueDevices;
+        print(_uniqueDevices.length);
       });
     });
   }

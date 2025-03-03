@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:viam_flutter_provisioning/viam_bluetooth_provisioning.dart';
-import 'package:blev/ble_central.dart'; // ignore: depend_on_referenced_packages
 import 'connected_peripheral_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -90,7 +89,7 @@ class _HomeScreen extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Bluetooth Provisioning'),
+        title: const Text('Bluetooth Devices'),
       ),
       body: _isConnecting
           ? const Center(child: CircularProgressIndicator())
@@ -101,7 +100,7 @@ class _HomeScreen extends State<HomeScreen> {
                   leading: Icon(Icons.bluetooth, color: Colors.blue),
                   title: Text(_uniqueDevices[index].name.isNotEmpty ? _uniqueDevices[index].name : 'Untitled'),
                   subtitle: Text(_uniqueDevices[index].id),
-                  onTap: () => _connect(_uniqueDevices[index]),
+                  onTap: () => _connect(_uniqueDevices[index]), // show modal..? with connect vs provision
                 );
               },
             ),

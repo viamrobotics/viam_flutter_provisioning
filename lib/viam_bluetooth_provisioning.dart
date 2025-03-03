@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:blev/ble.dart';
 import 'package:blev/ble_central.dart';
 
+export 'package:blev/ble_central.dart';
+
 class ViamBluetoothProvisioning {
   BleCentral? _ble;
   bool _isPoweredOn = false;
@@ -57,5 +59,5 @@ class ViamBluetoothProvisioning {
     // TODO: ..
   }
 
-  // TODO: secret + part-id here in separate method?
+  // TODO: secret + part-id + app address* here in separate method?
 }

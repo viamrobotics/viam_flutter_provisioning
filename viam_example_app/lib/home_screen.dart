@@ -76,10 +76,7 @@ class _HomeScreen extends State<HomeScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ConnectedPeripheralScreen(
-            provisioning: widget.provisioning,
-            connectedBlePeripheral: connectedPeripheral,
-          ),
+          builder: (context) => ConnectedPeripheralScreen(connectedBlePeripheral: connectedPeripheral),
         ),
       );
     }

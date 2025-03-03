@@ -22,7 +22,7 @@ class ViamBluetoothProvisioning {
     });
   }
 
-  Stream<DiscoveredBlePeripheral> scanForDevices({List<String> serviceIds = const []}) {
+  Stream<DiscoveredBlePeripheral> scanForPeripherals({List<String> serviceIds = const []}) {
     if (_ble == null) {
       throw Exception('Bluetooth is not initialized');
     }
@@ -32,7 +32,16 @@ class ViamBluetoothProvisioning {
     return _ble!.scanForPeripherals(serviceIds);
   }
 
-  // TODO: connect
+  Future<ConnectedBlePeripheral> connectToPeripheral(DiscoveredBlePeripheral peripheral) async {
+    if (_ble == null) {
+      throw Exception('Bluetooth is not initialized');
+    }
+    if (!_isPoweredOn) {
+      throw Exception('Bluetooth is not powered on');
+    }
+    return await _ble!.connectToPeripheral(peripheral.id);
+  }
+
   // TODO: read network list (and display on screen)
   // TODO: write ssid,pw,secret,part-id
 }

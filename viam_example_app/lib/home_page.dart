@@ -40,14 +40,13 @@ class _HomePage extends State<HomePage> {
   }
 
   void _startScan() {
-    _scanSubscription = widget.provisioning.scanForDevices().listen((device) {
+    _scanSubscription = widget.provisioning.scanForPeripherals().listen((device) {
       setState(() {
         if (!_deviceIds.contains(device.id)) {
           _deviceIds.add(device.id);
           _uniqueDevices.add(device);
         }
         _uniqueDevices = _uniqueDevices;
-        print(_uniqueDevices.length);
       });
     });
   }
@@ -55,6 +54,21 @@ class _HomePage extends State<HomePage> {
   void _stopScan() {
     _scanSubscription?.cancel();
     _scanSubscription = null;
+  }
+
+  void _connect(DiscoveredBlePeripheral device) async {
+    // TODO: show loading in cell.. OR FULLSCREEN
+    try {
+      final connectedDevice = await widget.provisioning.connectToPeripheral(device);
+      print(connectedDevice);
+      // TODO: show when connected..
+    } catch (e) {
+      print(e);
+    }
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    // SnackBar(
+    //   content: Text('Tapped on item ${_uniqueDevices[index].name.isNotEmpty ? _uniqueDevices[index].name : 'Untitled'}'),
+    // ),
   }
 
   @override
@@ -70,13 +84,7 @@ class _HomePage extends State<HomePage> {
             leading: Icon(Icons.bluetooth, color: Colors.blue),
             title: Text(_uniqueDevices[index].name.isNotEmpty ? _uniqueDevices[index].name : 'Untitled'),
             subtitle: Text(_uniqueDevices[index].id),
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Tapped on item ${_uniqueDevices[index].name.isNotEmpty ? _uniqueDevices[index].name : 'Untitled'}'),
-                ),
-              );
-            },
+            onTap: () => _connect(_uniqueDevices[index]),
           );
         },
       ),

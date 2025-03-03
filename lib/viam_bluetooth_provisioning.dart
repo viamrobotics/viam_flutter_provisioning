@@ -42,6 +42,20 @@ class ViamBluetoothProvisioning {
     return await _ble!.connectToPeripheral(peripheral.id);
   }
 
-  // TODO: read network list (and display on screen)
-  // TODO: write ssid,pw,secret,part-id
+  Future<void> readNetworkList(ConnectedBlePeripheral peripheral) async {
+    // TODO: use knowledge of services/charactericts to read network list + return model that can be displayed
+    // find service with id..
+    // find characteristic with id..
+    // read characteristic and convert bytes to string, then parse into models
+  }
+
+  Future<void> writeNetworkConfig(
+    ConnectedBlePeripheral peripheral,
+    String ssid,
+    String pw,
+  ) async {
+    // TODO: ..
+  }
+
+  // TODO: secret + part-id here in separate method?
 }

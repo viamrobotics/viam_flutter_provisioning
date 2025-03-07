@@ -13,7 +13,7 @@ class ViamBluetoothProvisioning {
 
   /// xxxx7777-... is the wifi network characteristic
   /// ex: a8ee7777-2496-485a-b0ea-dc63a1122f1
-  static final _networkListCharacteristicPrefix = RegExp(r'^[0-9a-f]{4}2222', caseSensitive: false);
+  static final _networkListCharacteristicPrefix = RegExp(r'^[0-9a-f]{4}7777', caseSensitive: false);
 
   BleCentral? _ble;
   bool _isPoweredOn = false;

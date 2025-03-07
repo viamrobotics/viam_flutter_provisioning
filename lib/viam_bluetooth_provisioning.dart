@@ -17,6 +17,15 @@ class ViamBluetoothProvisioning {
   /// xxxx3333-... is the write-only characteristic for passkey
   static final _passkeyCharacteristicPrefix = RegExp(r'^[0-9a-f]{4}3333', caseSensitive: false);
 
+  /// xxxx4444-... is the write-only characteristic for part ID
+  static final _partIdCharacteristicPrefix = RegExp(r'^[0-9a-f]{4}4444', caseSensitive: false);
+
+  /// xxxx5555-... is the write-only characteristic for part secret
+  static final _partSecretCharacteristicPrefix = RegExp(r'^[0-9a-f]{4}5555', caseSensitive: false);
+
+  /// xxxx6666-... is the write-only characteristic for app address
+  static final _appAddressCharacteristicPrefix = RegExp(r'^[0-9a-f]{4}6666', caseSensitive: false);
+
   /// xxxx7777-... is the read-only characteristic for nearby available WiFi networks that the machine has detected
   static final _networkListCharacteristicPrefix = RegExp(r'^[0-9a-f]{4}7777', caseSensitive: false);
 
@@ -84,11 +93,20 @@ class ViamBluetoothProvisioning {
 
   Future<void> writeRobotPartConfig(
     ConnectedBlePeripheral peripheral,
-    String secret,
     String partId,
-    String appAddress, // maybe?
+    String secret,
+    String appAddress,
   ) async {
-    // TODO: ..
+    final bleService = peripheral.services.firstWhere((service) => _bleServicePrefix.hasMatch(service.id));
+
+    final partIdCharacteristic = bleService.characteristics.firstWhere((char) => _partIdCharacteristicPrefix.hasMatch(char.id));
+    await partIdCharacteristic.write(utf8.encode(partId));
+
+    final partSecretCharacteristic = bleService.characteristics.firstWhere((char) => _partSecretCharacteristicPrefix.hasMatch(char.id));
+    await partSecretCharacteristic.write(utf8.encode(secret));
+
+    final appAddressCharacteristic = bleService.characteristics.firstWhere((char) => _appAddressCharacteristicPrefix.hasMatch(char.id));
+    await appAddressCharacteristic.write(utf8.encode(appAddress));
   }
 
   // Helper functions

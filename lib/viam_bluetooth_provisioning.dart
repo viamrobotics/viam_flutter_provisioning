@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:blev/ble.dart';
@@ -8,11 +9,15 @@ export 'package:blev/ble_central.dart';
 
 class ViamBluetoothProvisioning {
   /// xxxx1111-... is the encompassing bluetooth service
-  /// ex: 79ff1111-4f38-44b9-b3b5-78fb7e14757e
   static final _bleServicePrefix = RegExp(r'^[0-9a-f]{4}1111', caseSensitive: false);
 
-  /// xxxx7777-... is the wifi network characteristic
-  /// ex: a8ee7777-2496-485a-b0ea-dc63a1122f1
+  /// xxxx2222-... is the write-only characteristic for SSID
+  static final _ssidCharacteristicPrefix = RegExp(r'^[0-9a-f]{4}2222', caseSensitive: false);
+
+  /// xxxx3333-... is the write-only characteristic for passkey
+  static final _passkeyCharacteristicPrefix = RegExp(r'^[0-9a-f]{4}3333', caseSensitive: false);
+
+  /// xxxx7777-... is the read-only characteristic for nearby available WiFi networks that the machine has detected
   static final _networkListCharacteristicPrefix = RegExp(r'^[0-9a-f]{4}7777', caseSensitive: false);
 
   BleCentral? _ble;
@@ -53,19 +58,14 @@ class ViamBluetoothProvisioning {
   }
 
   Future<List<String>> readNetworkList(ConnectedBlePeripheral peripheral) async {
-    for (final service in peripheral.services) {
-      if (_bleServicePrefix.hasMatch(service.id)) {
-        for (final characteristic in service.characteristics) {
-          if (_networkListCharacteristicPrefix.hasMatch(characteristic.id)) {
-            final networkListBytes = await characteristic.read();
-            if (networkListBytes != null) {
-              return _convertNetworkListBytes(networkListBytes);
-            }
-          }
-        }
-      }
+    final bleService = peripheral.services.firstWhere((service) => _bleServicePrefix.hasMatch(service.id));
+
+    final networkListCharacteristic = bleService.characteristics.firstWhere((char) => _networkListCharacteristicPrefix.hasMatch(char.id));
+    final networkListBytes = await networkListCharacteristic.read();
+    if (networkListBytes != null) {
+      return _convertNetworkListBytes(networkListBytes);
     }
-    return []; // could also throw if can't find
+    return []; // could throw if null
   }
 
   Future<void> writeNetworkConfig(
@@ -73,7 +73,13 @@ class ViamBluetoothProvisioning {
     String ssid,
     String pw,
   ) async {
-    // TODO: ..
+    final bleService = peripheral.services.firstWhere((service) => _bleServicePrefix.hasMatch(service.id));
+
+    final ssidCharacteristic = bleService.characteristics.firstWhere((char) => _ssidCharacteristicPrefix.hasMatch(char.id));
+    await ssidCharacteristic.write(utf8.encode(ssid));
+
+    final passkeyCharacteristic = bleService.characteristics.firstWhere((char) => _passkeyCharacteristicPrefix.hasMatch(char.id));
+    await passkeyCharacteristic.write(utf8.encode(pw));
   }
 
   Future<void> writeRobotPartConfig(

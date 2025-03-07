@@ -46,6 +46,7 @@ class ViamBluetoothProvisioning {
     });
   }
 
+  // TODO: can/will convert to only scan for peripherials with the matching service UUIDs
   Stream<DiscoveredBlePeripheral> scanForPeripherals({List<String> serviceIds = const []}) {
     if (_ble == null) {
       throw Exception('Bluetooth is not initialized');
@@ -108,6 +109,9 @@ class ViamBluetoothProvisioning {
     final appAddressCharacteristic = bleService.characteristics.firstWhere((char) => _appAddressCharacteristicPrefix.hasMatch(char.id));
     await appAddressCharacteristic.write(utf8.encode(appAddress));
   }
+
+  // TODO: method for naming/creating robot (viam service class..? it's not ble related)
+  // TODO: method for checking robot status, when it's online (also not ble related)
 
   // Helper functions
 

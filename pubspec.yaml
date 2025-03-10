@@ -12,7 +12,6 @@ dependencies:
     sdk: flutter
 
   blev: 0.0.4
-  viam_sdk: 0.2.2
 
 dev_dependencies:
   flutter_test:

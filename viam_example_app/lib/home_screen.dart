@@ -98,7 +98,7 @@ class _HomeScreen extends State<HomeScreen> {
                   leading: Icon(Icons.bluetooth, color: Colors.blue),
                   title: Text(_uniqueDevices[index].name.isNotEmpty ? _uniqueDevices[index].name : 'Untitled'),
                   subtitle: Text(_uniqueDevices[index].id),
-                  onTap: () => _connect(_uniqueDevices[index]), // TODO: give option to provision on tap
+                  onTap: () => _connect(_uniqueDevices[index]),
                 );
               },
             ),

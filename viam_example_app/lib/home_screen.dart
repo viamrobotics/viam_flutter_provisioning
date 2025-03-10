@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:viam_flutter_provisioning/viam_bluetooth_provisioning.dart';
-import 'connected_peripheral_screen.dart';
+
+import 'provision_peripheral_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.provisioning});
@@ -64,7 +65,7 @@ class _HomeScreen extends State<HomeScreen> {
       final connectedPeripheral = await widget.provisioning.connectToPeripheral(device);
       _pushToConnectedScreen(connectedPeripheral);
     } catch (e) {
-      print(e); // TODO: surface error
+      print(e);
     }
     setState(() {
       _isConnecting = false;
@@ -76,7 +77,7 @@ class _HomeScreen extends State<HomeScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ConnectedPeripheralScreen(connectedBlePeripheral: connectedPeripheral),
+          builder: (context) => ProvisionPeripheralScreen(connectedBlePeripheral: connectedPeripheral),
         ),
       );
     }

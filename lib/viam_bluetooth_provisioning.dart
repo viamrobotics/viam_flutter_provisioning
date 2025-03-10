@@ -51,7 +51,7 @@ class ViamBluetoothProvisioning {
       throw Exception('Bluetooth is not initialized');
     }
     if (!_isPoweredOn) {
-      throw Exception('Bluetooth is not powered on');
+      throw Exception('Bluetooth is not powered on'); // re-init?
     }
     return _ble!.scanForPeripherals(serviceIds);
   }
@@ -66,7 +66,7 @@ class ViamBluetoothProvisioning {
     return await _ble!.connectToPeripheral(peripheral.id);
   }
 
-  Future<List<String>> readNetworkList(ConnectedBlePeripheral peripheral) async {
+  static Future<List<String>> readNetworkList(ConnectedBlePeripheral peripheral) async {
     final bleService = peripheral.services.firstWhere((service) => _bleServicePrefix.hasMatch(service.id));
 
     final networkListCharacteristic = bleService.characteristics.firstWhere((char) => _networkListCharacteristicPrefix.hasMatch(char.id));
@@ -77,7 +77,7 @@ class ViamBluetoothProvisioning {
     return []; // could throw if null
   }
 
-  Future<void> writeNetworkConfig(
+  static Future<void> writeNetworkConfig(
     ConnectedBlePeripheral peripheral,
     String ssid,
     String pw,
@@ -91,7 +91,7 @@ class ViamBluetoothProvisioning {
     await passkeyCharacteristic.write(utf8.encode(pw));
   }
 
-  Future<void> writeRobotPartConfig(
+  static Future<void> writeRobotPartConfig(
     ConnectedBlePeripheral peripheral,
     String partId,
     String secret,
@@ -111,7 +111,7 @@ class ViamBluetoothProvisioning {
 
   // Helper functions
 
-  List<String> _convertNetworkListBytes(Uint8List bytes) {
+  static List<String> _convertNetworkListBytes(Uint8List bytes) {
     // https://github.com/viamrobotics/agent/pull/77#issuecomment-2699307427
     //
     // ssid := "foobar"

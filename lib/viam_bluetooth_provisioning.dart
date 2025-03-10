@@ -6,6 +6,8 @@ import 'package:blev/ble.dart';
 import 'package:blev/ble_central.dart';
 export 'package:blev/ble_central.dart';
 
+import 'wifi_network.dart';
+
 class ViamBluetoothProvisioning {
   /// xxxx1111-... is the encompassing bluetooth service
   static final _bleServicePrefix = RegExp(r'^[0-9a-f]{4}1111', caseSensitive: false);
@@ -66,13 +68,13 @@ class ViamBluetoothProvisioning {
     return await _ble!.connectToPeripheral(peripheral.id);
   }
 
-  static Future<List<String>> readNetworkList(ConnectedBlePeripheral peripheral) async {
+  static Future<List<WifiNetwork>> readNetworkList(ConnectedBlePeripheral peripheral) async {
     final bleService = peripheral.services.firstWhere((service) => _bleServicePrefix.hasMatch(service.id));
 
     final networkListCharacteristic = bleService.characteristics.firstWhere((char) => _networkListCharacteristicPrefix.hasMatch(char.id));
     final networkListBytes = await networkListCharacteristic.read();
     if (networkListBytes != null) {
-      return _convertNetworkListBytes(networkListBytes);
+      return convertNetworkListBytes(networkListBytes);
     }
     return []; // could throw if null
   }
@@ -111,30 +113,27 @@ class ViamBluetoothProvisioning {
 
   // Helper functions
 
-  static List<String> _convertNetworkListBytes(Uint8List bytes) {
-    // https://github.com/viamrobotics/agent/pull/77#issuecomment-2699307427
-    //
-    // ssid := "foobar"
-    // signal := uint8(50) // can't be more than 127, use 0-100)
-    // secure := true
-    //
-    // meta := byte(signal)
-    // if secure {
-    // 	meta = meta | (1 << 7)
-    // }
-    //
-    // list := []byte{meta}
-    // list = append(list, []byte(ssid)...)
-    // list = append(list, 0x0) // separator/terminator
-    //
-    // fmt.Printf("HEX: % x\n", list)
-    //
-    // newMeta := list[0]
-    // newSecure := uint8(newMeta) > 127
-    // newSignal := newMeta &^ byte(1<<7)
-    // newSsid := string(list[1:])
+  static List<WifiNetwork> convertNetworkListBytes(Uint8List bytes) {
+    int currentIndex = 0;
+    final networks = <WifiNetwork>[];
+    while (currentIndex < bytes.length) {
+      final meta = bytes[currentIndex];
+      final isSecure = (meta & 0x80) != 0;
+      final signalStrength = meta & 0x7F;
 
-    // TODO: use above logic to parse out models, maybe return more than list, can return models
-    return [];
+      int nullIndex = currentIndex + 1;
+      while (nullIndex < bytes.length && bytes[nullIndex] != 0) {
+        nullIndex++;
+      }
+      final ssid = utf8.decode(bytes.sublist(currentIndex + 1, nullIndex));
+
+      networks.add(WifiNetwork(
+        ssid: ssid,
+        signalStrength: signalStrength,
+        isSecure: isSecure,
+      ));
+      currentIndex = nullIndex + 1;
+    }
+    return networks;
   }
 }

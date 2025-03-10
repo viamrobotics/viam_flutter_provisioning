@@ -47,7 +47,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     try {
       final networkList = await ViamBluetoothProvisioning.readNetworkList(widget.connectedBlePeripheral);
       setState(() {
-        _networkList = networkList;
+        _networkList = networkList.map((network) => network.ssid).toList();
         _isLoadingNetworkList = false;
       });
     } catch (e) {

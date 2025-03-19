@@ -5,16 +5,15 @@ import 'package:viam_flutter_provisioning/viam_bluetooth_provisioning.dart';
 
 import 'provision_peripheral_screen.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required this.provisioning});
-
-  final ViamBluetoothProvisioning provisioning;
+class ScanningScreen extends StatefulWidget {
+  const ScanningScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreen();
+  State<ScanningScreen> createState() => _ScanningScreen();
 }
 
-class _HomeScreen extends State<HomeScreen> {
+class _ScanningScreen extends State<ScanningScreen> {
+  final ViamBluetoothProvisioning _provisioning = ViamBluetoothProvisioning();
   StreamSubscription<DiscoveredBlePeripheral>? _scanSubscription;
   final Set<String> _deviceIds = {};
   List<DiscoveredBlePeripheral> _uniqueDevices = [];
@@ -33,7 +32,7 @@ class _HomeScreen extends State<HomeScreen> {
   }
 
   void _initialize() async {
-    await widget.provisioning.initialize(poweredOn: (poweredOn) {
+    await _provisioning.initialize(poweredOn: (poweredOn) {
       if (poweredOn) {
         _startScan();
       }
@@ -41,7 +40,7 @@ class _HomeScreen extends State<HomeScreen> {
   }
 
   void _startScan() {
-    _scanSubscription = widget.provisioning.scanForPeripherals().listen((device) {
+    _scanSubscription = _provisioning.scanForPeripherals().listen((device) {
       setState(() {
         if (!_deviceIds.contains(device.id)) {
           _deviceIds.add(device.id);
@@ -62,7 +61,7 @@ class _HomeScreen extends State<HomeScreen> {
       _isConnecting = true;
     });
     try {
-      final connectedPeripheral = await widget.provisioning.connectToPeripheral(device);
+      final connectedPeripheral = await _provisioning.connectToPeripheral(device);
       _pushToConnectedScreen(connectedPeripheral);
     } catch (e) {
       print(e);

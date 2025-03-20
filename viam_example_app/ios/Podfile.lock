@@ -1,5 +1,5 @@
 PODS:
-  - blev (0.0.2):
+  - blev (0.0.6):
     - Flutter
   - Flutter (1.0.0)
 
@@ -14,7 +14,7 @@ EXTERNAL SOURCES:
     :path: Flutter
 
 SPEC CHECKSUMS:
-  blev: 4b2448771fe908d5f5f013571dac92f51e5c1fcc
+  blev: 22f97068cec915b697e7136d1bdd10302ea66529
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796

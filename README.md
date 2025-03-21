@@ -3,7 +3,7 @@ __In-development__ package for provisioning Viam machines using Bluetooth. More 
 
 Installation
 
-flutter pub add viam_flutter_provisioning
+`flutter pub add viam_flutter_provisioning`
 
 ## Usage
 

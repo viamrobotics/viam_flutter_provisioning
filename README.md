@@ -1,5 +1,5 @@
 
-__In-development__ package for provisioning Viam machines using Bluetooth. More methods (hotspot, etc.) may be added here or this functionality will be included in another on of our packages.
+__In-development__ package for provisioning Viam machines using Bluetooth. More methods (hotspot, etc.) may be added here or this functionality will be included in another one of our packages.
 
 ## Installation
 

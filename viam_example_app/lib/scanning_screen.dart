@@ -95,7 +95,7 @@ class _ScanningScreen extends State<ScanningScreen> {
               itemBuilder: (context, index) {
                 return ListTile(
                   leading: Icon(Icons.bluetooth, color: Colors.blue),
-                  title: Text(_uniqueDevices[index].name ?? 'Untitled'),
+                  title: Text(_uniqueDevices[index].name?.isNotEmpty == true ? _uniqueDevices[index].name! : 'Untitled'),
                   subtitle: Text(_uniqueDevices[index].id),
                   onTap: () => _connect(_uniqueDevices[index]),
                 );

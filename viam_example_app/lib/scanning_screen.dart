@@ -76,7 +76,10 @@ class _ScanningScreen extends State<ScanningScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ProvisionPeripheralScreen(connectedBlePeripheral: connectedPeripheral),
+          builder: (context) => ProvisionPeripheralScreen(
+            connectedBlePeripheral: connectedPeripheral,
+            provisioning: _provisioning,
+          ),
         ),
       );
     }

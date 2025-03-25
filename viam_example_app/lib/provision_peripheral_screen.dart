@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:viam_flutter_provisioning/viam_bluetooth_provisioning.dart';
 
 class ProvisionPeripheralScreen extends StatefulWidget {
-  const ProvisionPeripheralScreen({super.key, required this.connectedBlePeripheral});
+  const ProvisionPeripheralScreen({super.key, required this.provisioning, required this.connectedBlePeripheral});
 
+  final ViamBluetoothProvisioning provisioning;
   final ConnectedBlePeripheral connectedBlePeripheral;
 
   @override
@@ -45,7 +46,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
       _isLoadingNetworkList = true;
     });
     try {
-      final networkList = await ViamBluetoothProvisioning.readNetworkList(widget.connectedBlePeripheral);
+      final networkList = await widget.provisioning.readNetworkList(widget.connectedBlePeripheral);
       setState(() {
         _networkList = networkList.map((network) => network.ssid).toList();
         _isLoadingNetworkList = false;
@@ -66,7 +67,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     try {
       final ssid = _ssidTextController.text;
       final passkey = _passkeyTextController.text;
-      await ViamBluetoothProvisioning.writeNetworkConfig(widget.connectedBlePeripheral, ssid, passkey);
+      await widget.provisioning.writeNetworkConfig(widget.connectedBlePeripheral, ssid, passkey);
       _showSnackBar('Wrote network config');
     } catch (e) {
       print('Error writing network config: ${e.toString()}');
@@ -85,7 +86,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
       final partId = _partIdTextController.text;
       final secret = _secretTextController.text;
       final appAddress = _appAddressTextController.text;
-      await ViamBluetoothProvisioning.writeRobotPartConfig(widget.connectedBlePeripheral, partId, secret, appAddress);
+      await widget.provisioning.writeRobotPartConfig(widget.connectedBlePeripheral, partId, secret, appAddress);
       _showSnackBar('Wrote robot part config');
     } catch (e) {
       print('Error writing robot part config: ${e.toString()}');

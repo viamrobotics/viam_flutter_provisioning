@@ -25,10 +25,15 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
   bool _isWritingNetworkConfig = false;
   bool _isWritingRobotPartConfig = false;
 
+  bool _isLoadingStatus = false;
+  bool _isConfigured = false;
+  bool _isConnected = false;
+
   @override
   void initState() {
     super.initState();
     _readNetworkList();
+    _appAddressTextController.text = 'https://app.viam.com:443';
   }
 
   @override
@@ -60,6 +65,27 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     }
   }
 
+  void _readStatus() async {
+    setState(() {
+      _isLoadingStatus = true;
+    });
+    try {
+      final status = await widget.provisioning.readStatus(widget.connectedBlePeripheral);
+      final isConfigured = status.isConfigured;
+      final isConnected = status.isConnected;
+      setState(() {
+        _isConfigured = isConfigured;
+        _isConnected = isConnected;
+      });
+    } catch (e) {
+      print('Error reading status: ${e.toString()}');
+    } finally {
+      setState(() {
+        _isLoadingStatus = false;
+      });
+    }
+  }
+
   void _writeNetworkConfig() async {
     setState(() {
       _isWritingNetworkConfig = true;
@@ -67,7 +93,11 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     try {
       final ssid = _ssidTextController.text;
       final passkey = _passkeyTextController.text;
-      await widget.provisioning.writeNetworkConfig(widget.connectedBlePeripheral, ssid, passkey);
+      await widget.provisioning.writeNetworkConfig(
+        peripheral: widget.connectedBlePeripheral,
+        ssid: ssid,
+        pw: passkey,
+      );
       _showSnackBar('Wrote network config');
     } catch (e) {
       print('Error writing network config: ${e.toString()}');
@@ -86,7 +116,12 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
       final partId = _partIdTextController.text;
       final secret = _secretTextController.text;
       final appAddress = _appAddressTextController.text;
-      await widget.provisioning.writeRobotPartConfig(widget.connectedBlePeripheral, partId, secret, appAddress);
+      await widget.provisioning.writeRobotPartConfig(
+        peripheral: widget.connectedBlePeripheral,
+        partId: partId,
+        secret: secret,
+        appAddress: appAddress,
+      );
       _showSnackBar('Wrote robot part config');
     } catch (e) {
       print('Error writing robot part config: ${e.toString()}');
@@ -118,6 +153,14 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
+              Text('Configured: $_isConfigured'),
+              Text('Connected: $_isConnected'),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: _isLoadingStatus ? null : _readStatus,
+                child: _isLoadingStatus ? const CircularProgressIndicator.adaptive() : const Text('Read Status'),
+              ),
+              const SizedBox(height: 16),
               TextField(
                 controller: _ssidTextController,
                 decoration: const InputDecoration(labelText: 'SSID'),

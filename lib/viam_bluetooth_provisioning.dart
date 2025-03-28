@@ -18,6 +18,7 @@ class ViamBluetoothProvisioning {
   static final _robotPartIDKey = 'id';
   static final _robotPartSecretKey = 'secret';
   static final _appAddressKey = 'app_address';
+  static final _statusKey = 'status';
 
   BleCentral? _ble;
   bool _isPoweredOn = false;
@@ -29,6 +30,7 @@ class ViamBluetoothProvisioning {
   final String _robotPartUUID;
   final String _robotPartSecretUUID;
   final String _appAddressUUID;
+  final String _statusUUID;
 
   factory ViamBluetoothProvisioning() {
     final uuid = Uuid();
@@ -40,6 +42,7 @@ class ViamBluetoothProvisioning {
       uuid.v5(_uuidNamespace, _robotPartIDKey),
       uuid.v5(_uuidNamespace, _robotPartSecretKey),
       uuid.v5(_uuidNamespace, _appAddressKey),
+      uuid.v5(_uuidNamespace, _statusKey),
     );
   }
   ViamBluetoothProvisioning._(
@@ -50,6 +53,7 @@ class ViamBluetoothProvisioning {
     this._robotPartUUID,
     this._robotPartSecretUUID,
     this._appAddressUUID,
+    this._statusUUID,
   );
 
   Future<void> initialize({Function(bool)? poweredOn}) async {
@@ -96,11 +100,39 @@ class ViamBluetoothProvisioning {
     return [];
   }
 
-  Future<void> writeNetworkConfig(
-    ConnectedBlePeripheral peripheral,
-    String ssid,
-    String pw,
-  ) async {
+  Future<({bool isConfigured, bool isConnected})> readStatus(ConnectedBlePeripheral peripheral) async {
+    final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
+
+    final statusCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _statusUUID);
+    final buffer = await statusCharacteristic.read();
+    final status = buffer?[0];
+    if (status == null) {
+      throw Exception('Unable to read status byte');
+    }
+
+    bool isConfigured = false;
+    bool isConnected = false;
+    switch (status) {
+      case 0:
+        break;
+      case 1:
+        isConfigured = true;
+      case 2:
+        isConfigured = false;
+      case 3:
+        isConfigured = false;
+        isConnected = true;
+      default:
+        throw Exception('Invalid status');
+    }
+    return (isConfigured: isConfigured, isConnected: isConnected);
+  }
+
+  Future<void> writeNetworkConfig({
+    required ConnectedBlePeripheral peripheral,
+    required String ssid,
+    required String pw,
+  }) async {
     final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
 
     final ssidCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _ssidUUID);
@@ -110,12 +142,12 @@ class ViamBluetoothProvisioning {
     await pskCharacteristic.write(utf8.encode(pw));
   }
 
-  Future<void> writeRobotPartConfig(
-    ConnectedBlePeripheral peripheral,
-    String partId,
-    String secret,
-    String appAddress,
-  ) async {
+  Future<void> writeRobotPartConfig({
+    required ConnectedBlePeripheral peripheral,
+    required String partId,
+    required String secret,
+    String appAddress = 'https://app.viam.com:443',
+  }) async {
     final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
 
     final partIdCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _robotPartUUID);

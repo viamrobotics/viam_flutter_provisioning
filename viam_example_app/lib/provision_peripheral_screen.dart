@@ -132,6 +132,13 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     }
   }
 
+  void _selectedSSID(String ssid) {
+    setState(() {
+      _ssidTextController.text = ssid;
+    });
+    _showSnackBar('Set SSID: $ssid');
+  }
+
   void _showSnackBar(String message) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -204,7 +211,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
                     return ListTile(
                       leading: const Icon(Icons.wifi, color: Colors.blue),
                       title: Text('Network: $network'),
-                      onTap: () => setState(() => _ssidTextController.text = network),
+                      onTap: () => _selectedSSID(network),
                       selected: _ssidTextController.text == network,
                     );
                   },

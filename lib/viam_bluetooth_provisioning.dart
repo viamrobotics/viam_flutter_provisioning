@@ -14,7 +14,7 @@ class ViamBluetoothProvisioning {
   static final _serviceNameKey = 'viam-provisioning';
   static final _availableWiFiNetworksKey = 'networks';
   static final _ssidKey = 'ssid';
-  static final _pskKey = 'passkey';
+  static final _pskKey = 'psk';
   static final _robotPartIDKey = 'id';
   static final _robotPartSecretKey = 'secret';
   static final _appAddressKey = 'app_address';

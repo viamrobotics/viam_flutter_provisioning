@@ -32,6 +32,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
   @override
   void initState() {
     super.initState();
+    _readStatus();
     _readNetworkList();
     _appAddressTextController.text = 'https://app.viam.com:443';
   }

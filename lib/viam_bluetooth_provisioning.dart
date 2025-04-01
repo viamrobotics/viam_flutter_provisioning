@@ -140,16 +140,9 @@ class ViamBluetoothProvisioning {
   }) async {
     final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
 
-    // own func?
-    final cryptoCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _cryptoUUID);
-    final publicKey = await cryptoCharacteristic.read();
-    if (publicKey == null) {
-      throw Exception('Unable to read public key');
-    }
-
-    var hmacSha256 = Hmac(sha256, publicKey);
-    var encodedSSID = hmacSha256.convert(utf8.encode(ssid));
-    var encodedPW = hmacSha256.convert(utf8.encode(pw));
+    final sha256 = await hmacSha256(bleService);
+    final encodedSSID = sha256.convert(utf8.encode(ssid));
+    final encodedPW = sha256.convert(utf8.encode(pw));
 
     final ssidCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _ssidUUID);
     await ssidCharacteristic.write(Uint8List.fromList(encodedSSID.bytes));
@@ -166,19 +159,31 @@ class ViamBluetoothProvisioning {
   }) async {
     final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
 
-    // TODO: sha256
+    final sha256 = await hmacSha256(bleService);
+    final encodedPartId = sha256.convert(utf8.encode(partId));
+    final encodedSecret = sha256.convert(utf8.encode(secret));
+    final encodedAppAddress = sha256.convert(utf8.encode(appAddress));
 
     final partIdCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _robotPartUUID);
-    await partIdCharacteristic.write(utf8.encode(partId));
+    await partIdCharacteristic.write(Uint8List.fromList(encodedPartId.bytes));
 
     final partSecretCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _robotPartSecretUUID);
-    await partSecretCharacteristic.write(utf8.encode(secret));
+    await partSecretCharacteristic.write(Uint8List.fromList(encodedSecret.bytes));
 
     final appAddressCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _appAddressUUID);
-    await appAddressCharacteristic.write(utf8.encode(appAddress));
+    await appAddressCharacteristic.write(Uint8List.fromList(encodedAppAddress.bytes));
   }
 
   // Helper functions
+
+  Future<Hmac> hmacSha256(BleService service) async {
+    final cryptoCharacteristic = service.characteristics.firstWhere((char) => char.id == _cryptoUUID);
+    final publicKey = await cryptoCharacteristic.read();
+    if (publicKey == null) {
+      throw Exception('Unable to read public key');
+    }
+    return Hmac(sha256, publicKey);
+  }
 
   static List<WifiNetwork> convertNetworkListBytes(Uint8List bytes) {
     int currentIndex = 0;

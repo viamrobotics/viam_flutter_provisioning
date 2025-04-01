@@ -6,6 +6,7 @@ import 'package:blev/ble.dart';
 import 'package:blev/ble_central.dart';
 export 'package:blev/ble_central.dart';
 import 'package:uuid/uuid.dart';
+import 'package:crypto/crypto.dart';
 
 import 'wifi_network.dart';
 
@@ -19,6 +20,7 @@ class ViamBluetoothProvisioning {
   static final _robotPartSecretKey = 'secret';
   static final _appAddressKey = 'app_address';
   static final _statusKey = 'status';
+  static final _cryptoKey = 'pub_key';
 
   BleCentral? _ble;
   bool _isPoweredOn = false;
@@ -31,6 +33,7 @@ class ViamBluetoothProvisioning {
   final String _robotPartSecretUUID;
   final String _appAddressUUID;
   final String _statusUUID;
+  final String _cryptoUUID;
 
   factory ViamBluetoothProvisioning() {
     final uuid = Uuid();
@@ -43,6 +46,7 @@ class ViamBluetoothProvisioning {
       uuid.v5(_uuidNamespace, _robotPartSecretKey),
       uuid.v5(_uuidNamespace, _appAddressKey),
       uuid.v5(_uuidNamespace, _statusKey),
+      uuid.v5(_uuidNamespace, _cryptoKey),
     );
   }
   ViamBluetoothProvisioning._(
@@ -54,6 +58,7 @@ class ViamBluetoothProvisioning {
     this._robotPartSecretUUID,
     this._appAddressUUID,
     this._statusUUID,
+    this._cryptoUUID,
   );
 
   Future<void> initialize({Function(bool)? poweredOn}) async {
@@ -135,11 +140,22 @@ class ViamBluetoothProvisioning {
   }) async {
     final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
 
+    // own func?
+    final cryptoCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _cryptoUUID);
+    final publicKey = await cryptoCharacteristic.read();
+    if (publicKey == null) {
+      throw Exception('Unable to read public key');
+    }
+
+    var hmacSha256 = Hmac(sha256, publicKey);
+    var encodedSSID = hmacSha256.convert(utf8.encode(ssid));
+    var encodedPW = hmacSha256.convert(utf8.encode(pw));
+
     final ssidCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _ssidUUID);
-    await ssidCharacteristic.write(utf8.encode(ssid));
+    await ssidCharacteristic.write(Uint8List.fromList(encodedSSID.bytes));
 
     final pskCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _pskUUID);
-    await pskCharacteristic.write(utf8.encode(pw));
+    await pskCharacteristic.write(Uint8List.fromList(encodedPW.bytes));
   }
 
   Future<void> writeRobotPartConfig({
@@ -149,6 +165,8 @@ class ViamBluetoothProvisioning {
     String appAddress = 'https://app.viam.com:443',
   }) async {
     final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
+
+    // TODO: sha256
 
     final partIdCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _robotPartUUID);
     await partIdCharacteristic.write(utf8.encode(partId));

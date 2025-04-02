@@ -102,7 +102,7 @@ class ViamBluetoothProvisioning {
     final networkListCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _availableWiFiNetworksUUID);
     final networkListBytes = await networkListCharacteristic.read();
     if (networkListBytes != null) {
-      return _convertNetworkListBytes(networkListBytes);
+      return convertNetworkListBytes(networkListBytes);
     }
     return [];
   }
@@ -190,7 +190,7 @@ class ViamBluetoothProvisioning {
 
   // Helper functions
 
-  static List<WifiNetwork> _convertNetworkListBytes(Uint8List bytes) {
+  static List<WifiNetwork> convertNetworkListBytes(Uint8List bytes) {
     int currentIndex = 0;
     final networks = <WifiNetwork>[];
     while (currentIndex < bytes.length) {

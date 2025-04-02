@@ -150,13 +150,13 @@ class ViamBluetoothProvisioning {
     final publicKey = _publicKey(publicKeyBytes);
     final encoder = _encoder(publicKey);
 
-    final encryptedSSID = encoder.process(utf8.encode(ssid));
+    final encodedSSID = encoder.process(utf8.encode(ssid));
     final ssidCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _ssidUUID);
-    await ssidCharacteristic.write(encryptedSSID);
+    await ssidCharacteristic.write(encodedSSID);
 
-    final encryptedPW = encoder.process(utf8.encode(pw));
+    final encodedPW = encoder.process(utf8.encode(pw));
     final pskCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _pskUUID);
-    await pskCharacteristic.write(encryptedPW);
+    await pskCharacteristic.write(encodedPW);
   }
 
   Future<void> writeRobotPartConfig({

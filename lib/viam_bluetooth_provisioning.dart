@@ -6,7 +6,9 @@ import 'package:blev/ble.dart';
 import 'package:blev/ble_central.dart';
 export 'package:blev/ble_central.dart';
 import 'package:uuid/uuid.dart';
-import 'package:crypto/crypto.dart';
+import 'package:pointycastle/pointycastle.dart';
+import 'package:pointycastle/asymmetric/oaep.dart';
+import 'package:pointycastle/asymmetric/rsa.dart';
 
 import 'wifi_network.dart';
 
@@ -140,15 +142,27 @@ class ViamBluetoothProvisioning {
   }) async {
     final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
 
-    final sha256 = await hmacSha256(bleService);
-    final encodedSSID = sha256.convert(utf8.encode(ssid));
-    final encodedPW = sha256.convert(utf8.encode(pw));
+    // Get and parse public key
+    final cryptoCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _cryptoUUID);
+    final publicKeyBytes = await cryptoCharacteristic.read();
+    if (publicKeyBytes == null) {
+      throw Exception('Unable to read public key');
+    }
 
+    // Parse your public key bytes into RSAPublicKey
+    final publicKey = parsePublicKey(publicKeyBytes);
+    print('public key: ${publicKey}');
+
+    // Encrypt the data
+    final encryptedSSID = encryptWithPublicKey(publicKey, Uint8List.fromList(utf8.encode(ssid)));
+    final encryptedPW = encryptWithPublicKey(publicKey, Uint8List.fromList(utf8.encode(pw)));
+
+    // Write encrypted data
     final ssidCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _ssidUUID);
-    await ssidCharacteristic.write(Uint8List.fromList(encodedSSID.bytes));
+    await ssidCharacteristic.write(encryptedSSID);
 
     final pskCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _pskUUID);
-    await pskCharacteristic.write(Uint8List.fromList(encodedPW.bytes));
+    await pskCharacteristic.write(encryptedPW);
   }
 
   Future<void> writeRobotPartConfig({
@@ -159,31 +173,31 @@ class ViamBluetoothProvisioning {
   }) async {
     final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
 
-    final sha256 = await hmacSha256(bleService);
-    final encodedPartId = sha256.convert(utf8.encode(partId));
-    final encodedSecret = sha256.convert(utf8.encode(secret));
-    final encodedAppAddress = sha256.convert(utf8.encode(appAddress));
+    // Get and parse public key (FUNC FOR THIS TOO)
+    final cryptoCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _cryptoUUID);
+    final publicKeyBytes = await cryptoCharacteristic.read();
+    if (publicKeyBytes == null) {
+      throw Exception('Unable to read public key');
+    }
+
+    // Parse your public key bytes into RSAPublicKey
+    final publicKey = parsePublicKey(publicKeyBytes);
+
+    final encodedPartId = encryptWithPublicKey(publicKey, Uint8List.fromList(utf8.encode(partId)));
+    final encodedSecret = encryptWithPublicKey(publicKey, Uint8List.fromList(utf8.encode(secret)));
+    final encodedAppAddress = encryptWithPublicKey(publicKey, Uint8List.fromList(utf8.encode(appAddress)));
 
     final partIdCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _robotPartUUID);
-    await partIdCharacteristic.write(Uint8List.fromList(encodedPartId.bytes));
+    await partIdCharacteristic.write(encodedPartId);
 
     final partSecretCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _robotPartSecretUUID);
-    await partSecretCharacteristic.write(Uint8List.fromList(encodedSecret.bytes));
+    await partSecretCharacteristic.write(encodedSecret);
 
     final appAddressCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _appAddressUUID);
-    await appAddressCharacteristic.write(Uint8List.fromList(encodedAppAddress.bytes));
+    await appAddressCharacteristic.write(encodedAppAddress);
   }
 
   // Helper functions
-
-  Future<Hmac> hmacSha256(BleService service) async {
-    final cryptoCharacteristic = service.characteristics.firstWhere((char) => char.id == _cryptoUUID);
-    final publicKey = await cryptoCharacteristic.read();
-    if (publicKey == null) {
-      throw Exception('Unable to read public key');
-    }
-    return Hmac(sha256, publicKey);
-  }
 
   static List<WifiNetwork> convertNetworkListBytes(Uint8List bytes) {
     int currentIndex = 0;
@@ -207,5 +221,26 @@ class ViamBluetoothProvisioning {
       currentIndex = nullIndex + 1;
     }
     return networks;
+  }
+
+  RSAPublicKey parsePublicKey(Uint8List keyBytes) {
+    final parser = ASN1Parser(keyBytes);
+    final topLevelSeq = parser.nextObject() as ASN1Sequence;
+
+    // Skip the AlgorithmIdentifier
+    final pubKeyBitString = topLevelSeq.elements![1] as ASN1BitString;
+
+    // Parse the RSA public key structure (PKCS#1)
+    final pkParser = ASN1Parser(pubKeyBitString.stringValues as Uint8List);
+    final pkSeq = pkParser.nextObject() as ASN1Sequence;
+    final modulus = (pkSeq.elements![0] as ASN1Integer).integer!;
+    final exponent = (pkSeq.elements![1] as ASN1Integer).integer!;
+
+    return RSAPublicKey(modulus, exponent);
+  }
+
+  Uint8List encryptWithPublicKey(RSAPublicKey publicKey, Uint8List data) {
+    final cipher = OAEPEncoding.withSHA256(RSAEngine())..init(true, PublicKeyParameter<RSAPublicKey>(publicKey)); // true for encryption
+    return cipher.process(data);
   }
 }

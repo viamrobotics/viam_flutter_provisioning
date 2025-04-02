@@ -6,6 +6,9 @@ import 'package:blev/ble.dart';
 import 'package:blev/ble_central.dart';
 export 'package:blev/ble_central.dart';
 import 'package:uuid/uuid.dart';
+import 'package:pointycastle/pointycastle.dart';
+import 'package:pointycastle/asymmetric/oaep.dart';
+import 'package:pointycastle/asymmetric/rsa.dart';
 
 import 'wifi_network.dart';
 
@@ -19,6 +22,7 @@ class ViamBluetoothProvisioning {
   static final _robotPartSecretKey = 'secret';
   static final _appAddressKey = 'app_address';
   static final _statusKey = 'status';
+  static final _cryptoKey = 'pub_key';
 
   BleCentral? _ble;
   bool _isPoweredOn = false;
@@ -31,6 +35,7 @@ class ViamBluetoothProvisioning {
   final String _robotPartSecretUUID;
   final String _appAddressUUID;
   final String _statusUUID;
+  final String _cryptoUUID;
 
   factory ViamBluetoothProvisioning() {
     final uuid = Uuid();
@@ -43,6 +48,7 @@ class ViamBluetoothProvisioning {
       uuid.v5(_uuidNamespace, _robotPartSecretKey),
       uuid.v5(_uuidNamespace, _appAddressKey),
       uuid.v5(_uuidNamespace, _statusKey),
+      uuid.v5(_uuidNamespace, _cryptoKey),
     );
   }
   ViamBluetoothProvisioning._(
@@ -54,6 +60,7 @@ class ViamBluetoothProvisioning {
     this._robotPartSecretUUID,
     this._appAddressUUID,
     this._statusUUID,
+    this._cryptoUUID,
   );
 
   Future<void> initialize({Function(bool)? poweredOn}) async {
@@ -135,11 +142,21 @@ class ViamBluetoothProvisioning {
   }) async {
     final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
 
-    final ssidCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _ssidUUID);
-    await ssidCharacteristic.write(utf8.encode(ssid));
+    final cryptoCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _cryptoUUID);
+    final publicKeyBytes = await cryptoCharacteristic.read();
+    if (publicKeyBytes == null) {
+      throw Exception('Unable to read public key');
+    }
+    final publicKey = _publicKey(publicKeyBytes);
+    final encoder = _encoder(publicKey);
 
+    final encodedSSID = encoder.process(utf8.encode(ssid));
+    final ssidCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _ssidUUID);
+    await ssidCharacteristic.write(encodedSSID);
+
+    final encodedPW = encoder.process(utf8.encode(pw));
     final pskCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _pskUUID);
-    await pskCharacteristic.write(utf8.encode(pw));
+    await pskCharacteristic.write(encodedPW);
   }
 
   Future<void> writeRobotPartConfig({
@@ -150,14 +167,25 @@ class ViamBluetoothProvisioning {
   }) async {
     final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
 
+    final cryptoCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _cryptoUUID);
+    final publicKeyBytes = await cryptoCharacteristic.read();
+    if (publicKeyBytes == null) {
+      throw Exception('Unable to read public key');
+    }
+    final publicKey = _publicKey(publicKeyBytes);
+    final encoder = _encoder(publicKey);
+
+    final encodedPartId = encoder.process(utf8.encode(partId));
     final partIdCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _robotPartUUID);
-    await partIdCharacteristic.write(utf8.encode(partId));
+    await partIdCharacteristic.write(encodedPartId);
 
+    final encodedSecret = encoder.process(utf8.encode(secret));
     final partSecretCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _robotPartSecretUUID);
-    await partSecretCharacteristic.write(utf8.encode(secret));
+    await partSecretCharacteristic.write(encodedSecret);
 
+    final encodedAppAddress = encoder.process(utf8.encode(appAddress));
     final appAddressCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _appAddressUUID);
-    await appAddressCharacteristic.write(utf8.encode(appAddress));
+    await appAddressCharacteristic.write(encodedAppAddress);
   }
 
   // Helper functions
@@ -184,5 +212,26 @@ class ViamBluetoothProvisioning {
       currentIndex = nullIndex + 1;
     }
     return networks;
+  }
+
+  RSAPublicKey _publicKey(Uint8List keyBytes) {
+    final parser = ASN1Parser(keyBytes);
+    final topLevelSeq = parser.nextObject() as ASN1Sequence;
+
+    final pubKeyBitString = topLevelSeq.elements?[1] as ASN1BitString;
+
+    final pkParser = ASN1Parser(pubKeyBitString.stringValues as Uint8List);
+    final pkSeq = pkParser.nextObject() as ASN1Sequence;
+    final modulus = (pkSeq.elements?[0] as ASN1Integer).integer;
+    final exponent = (pkSeq.elements?[1] as ASN1Integer).integer;
+
+    if (modulus == null || exponent == null) {
+      throw Exception('Unable to parse public key');
+    }
+    return RSAPublicKey(modulus, exponent);
+  }
+
+  OAEPEncoding _encoder(RSAPublicKey publicKey) {
+    return OAEPEncoding.withSHA256(RSAEngine())..init(true, PublicKeyParameter<RSAPublicKey>(publicKey));
   }
 }

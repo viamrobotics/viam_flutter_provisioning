@@ -14,7 +14,8 @@ dependencies:
 
   blev: ^0.0.7
   uuid: ^4.5.1
-
+  pointycastle: ^4.0.0
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

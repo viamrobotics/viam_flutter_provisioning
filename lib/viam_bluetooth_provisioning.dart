@@ -102,7 +102,7 @@ class ViamBluetoothProvisioning {
     final networkListCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _availableWiFiNetworksUUID);
     final networkListBytes = await networkListCharacteristic.read();
     if (networkListBytes != null) {
-      return convertNetworkListBytes(networkListBytes);
+      return _convertNetworkListBytes(networkListBytes);
     }
     return [];
   }
@@ -142,25 +142,19 @@ class ViamBluetoothProvisioning {
   }) async {
     final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
 
-    // Get and parse public key
     final cryptoCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _cryptoUUID);
     final publicKeyBytes = await cryptoCharacteristic.read();
     if (publicKeyBytes == null) {
       throw Exception('Unable to read public key');
     }
+    final publicKey = _publicKey(publicKeyBytes);
+    final encoder = _encoder(publicKey);
 
-    // Parse your public key bytes into RSAPublicKey
-    final publicKey = parsePublicKey(publicKeyBytes);
-    print('public key: ${publicKey}');
-
-    // Encrypt the data
-    final encryptedSSID = encryptWithPublicKey(publicKey, Uint8List.fromList(utf8.encode(ssid)));
-    final encryptedPW = encryptWithPublicKey(publicKey, Uint8List.fromList(utf8.encode(pw)));
-
-    // Write encrypted data
+    final encryptedSSID = encoder.process(utf8.encode(ssid));
     final ssidCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _ssidUUID);
     await ssidCharacteristic.write(encryptedSSID);
 
+    final encryptedPW = encoder.process(utf8.encode(pw));
     final pskCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _pskUUID);
     await pskCharacteristic.write(encryptedPW);
   }
@@ -173,33 +167,30 @@ class ViamBluetoothProvisioning {
   }) async {
     final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
 
-    // Get and parse public key (FUNC FOR THIS TOO)
     final cryptoCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _cryptoUUID);
     final publicKeyBytes = await cryptoCharacteristic.read();
     if (publicKeyBytes == null) {
       throw Exception('Unable to read public key');
     }
+    final publicKey = _publicKey(publicKeyBytes);
+    final encoder = _encoder(publicKey);
 
-    // Parse your public key bytes into RSAPublicKey
-    final publicKey = parsePublicKey(publicKeyBytes);
-
-    final encodedPartId = encryptWithPublicKey(publicKey, Uint8List.fromList(utf8.encode(partId)));
-    final encodedSecret = encryptWithPublicKey(publicKey, Uint8List.fromList(utf8.encode(secret)));
-    final encodedAppAddress = encryptWithPublicKey(publicKey, Uint8List.fromList(utf8.encode(appAddress)));
-
+    final encodedPartId = encoder.process(utf8.encode(partId));
     final partIdCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _robotPartUUID);
     await partIdCharacteristic.write(encodedPartId);
 
+    final encodedSecret = encoder.process(utf8.encode(secret));
     final partSecretCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _robotPartSecretUUID);
     await partSecretCharacteristic.write(encodedSecret);
 
+    final encodedAppAddress = encoder.process(utf8.encode(appAddress));
     final appAddressCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _appAddressUUID);
     await appAddressCharacteristic.write(encodedAppAddress);
   }
 
   // Helper functions
 
-  static List<WifiNetwork> convertNetworkListBytes(Uint8List bytes) {
+  static List<WifiNetwork> _convertNetworkListBytes(Uint8List bytes) {
     int currentIndex = 0;
     final networks = <WifiNetwork>[];
     while (currentIndex < bytes.length) {
@@ -223,24 +214,24 @@ class ViamBluetoothProvisioning {
     return networks;
   }
 
-  RSAPublicKey parsePublicKey(Uint8List keyBytes) {
+  RSAPublicKey _publicKey(Uint8List keyBytes) {
     final parser = ASN1Parser(keyBytes);
     final topLevelSeq = parser.nextObject() as ASN1Sequence;
 
-    // Skip the AlgorithmIdentifier
-    final pubKeyBitString = topLevelSeq.elements![1] as ASN1BitString;
+    final pubKeyBitString = topLevelSeq.elements?[1] as ASN1BitString;
 
-    // Parse the RSA public key structure (PKCS#1)
     final pkParser = ASN1Parser(pubKeyBitString.stringValues as Uint8List);
     final pkSeq = pkParser.nextObject() as ASN1Sequence;
-    final modulus = (pkSeq.elements![0] as ASN1Integer).integer!;
-    final exponent = (pkSeq.elements![1] as ASN1Integer).integer!;
+    final modulus = (pkSeq.elements?[0] as ASN1Integer).integer;
+    final exponent = (pkSeq.elements?[1] as ASN1Integer).integer;
 
+    if (modulus == null || exponent == null) {
+      throw Exception('Unable to parse public key');
+    }
     return RSAPublicKey(modulus, exponent);
   }
 
-  Uint8List encryptWithPublicKey(RSAPublicKey publicKey, Uint8List data) {
-    final cipher = OAEPEncoding.withSHA256(RSAEngine())..init(true, PublicKeyParameter<RSAPublicKey>(publicKey)); // true for encryption
-    return cipher.process(data);
+  OAEPEncoding _encoder(RSAPublicKey publicKey) {
+    return OAEPEncoding.withSHA256(RSAEngine())..init(true, PublicKeyParameter<RSAPublicKey>(publicKey));
   }
 }

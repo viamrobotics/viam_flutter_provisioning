@@ -23,6 +23,7 @@ class ViamBluetoothProvisioning {
   static final _appAddressKey = 'app_address';
   static final _statusKey = 'status';
   static final _cryptoKey = 'pub_key';
+  static final _errorsKey = 'errors';
 
   BleCentral? _ble;
   bool _isPoweredOn = false;
@@ -36,6 +37,7 @@ class ViamBluetoothProvisioning {
   final String _appAddressUUID;
   final String _statusUUID;
   final String _cryptoUUID;
+  final String _errorsUUID;
 
   factory ViamBluetoothProvisioning() {
     final uuid = Uuid();
@@ -49,8 +51,10 @@ class ViamBluetoothProvisioning {
       uuid.v5(_uuidNamespace, _appAddressKey),
       uuid.v5(_uuidNamespace, _statusKey),
       uuid.v5(_uuidNamespace, _cryptoKey),
+      uuid.v5(_uuidNamespace, _errorsKey),
     );
   }
+
   ViamBluetoothProvisioning._(
     this._serviceUUID,
     this._availableWiFiNetworksUUID,
@@ -61,6 +65,7 @@ class ViamBluetoothProvisioning {
     this._appAddressUUID,
     this._statusUUID,
     this._cryptoUUID,
+    this._errorsUUID,
   );
 
   Future<void> initialize({Function(bool)? poweredOn}) async {
@@ -133,6 +138,17 @@ class ViamBluetoothProvisioning {
         throw Exception('Invalid status');
     }
     return (isConfigured: isConfigured, isConnected: isConnected);
+  }
+
+  Future<String> readErrors(ConnectedBlePeripheral peripheral) async {
+    final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
+
+    final errorsCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _errorsUUID);
+    final errorsBytes = await errorsCharacteristic.read();
+    if (errorsBytes != null) {
+      return utf8.decode(errorsBytes);
+    }
+    return '';
   }
 
   Future<void> writeNetworkConfig({

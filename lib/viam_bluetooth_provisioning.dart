@@ -154,7 +154,7 @@ class ViamBluetoothProvisioning {
   Future<void> writeNetworkConfig({
     required ConnectedBlePeripheral peripheral,
     required String ssid,
-    required String pw,
+    String? pw,
   }) async {
     final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
 
@@ -170,7 +170,7 @@ class ViamBluetoothProvisioning {
     final ssidCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _ssidUUID);
     await ssidCharacteristic.write(encodedSSID);
 
-    final encodedPW = encoder.process(utf8.encode(pw));
+    final encodedPW = encoder.process(utf8.encode(pw ?? 'NONE'));
     final pskCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _pskUUID);
     await pskCharacteristic.write(encodedPW);
   }

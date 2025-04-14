@@ -67,30 +67,18 @@ class ViamBluetoothProvisioning {
 
   Future<void> initialize({Function(bool)? poweredOn}) async {
     FlutterBluePlus.setLogLevel(LogLevel.verbose, color: false);
-    // TODO: fix unused / cleanup (more hints about cleanup in the repo)
-    var subscription = FlutterBluePlus.adapterState.listen((BluetoothAdapterState state) {
-      print(state);
+    FlutterBluePlus.adapterState.listen((BluetoothAdapterState state) {
       if (state == BluetoothAdapterState.on) {
-        // usually start scanning, connecting, etc
         _isPoweredOn = true;
       } else {
-        // show an error to the user, etc
         _isPoweredOn = false;
       }
       poweredOn?.call(_isPoweredOn);
     });
-    // subscription.cancel();
   }
 
   /// Scans for peripherals with the Viam bluetooth provisioning service UUID
   Future<Stream<List<ScanResult>>> scanForPeripherals() async {
-    // if (_ble == null) {
-    //   throw Exception('Bluetooth is not initialized');
-    // }
-    // if (!_isPoweredOn) {
-    //   throw Exception('Bluetooth is not powered on');
-    // }
-    // return _ble!.scanForPeripherals([_serviceUUID]);
     await FlutterBluePlus.startScan(withServices: [Guid(_serviceUUID)]);
     return FlutterBluePlus.onScanResults;
   }

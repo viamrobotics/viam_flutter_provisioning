@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:viam_flutter_provisioning/viam_bluetooth_provisioning.dart';
 
 class ProvisionPeripheralScreen extends StatefulWidget {
   const ProvisionPeripheralScreen({super.key, required this.provisioning, required this.connectedBlePeripheral});
 
   final ViamBluetoothProvisioning provisioning;
-  final ConnectedBlePeripheral connectedBlePeripheral;
+  final BluetoothDevice connectedBlePeripheral;
 
   @override
   State<ProvisionPeripheralScreen> createState() => _ProvisionPeripheralScreen();
@@ -154,7 +155,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.connectedBlePeripheral.id),
+        title: Text(widget.connectedBlePeripheral.remoteId.str),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

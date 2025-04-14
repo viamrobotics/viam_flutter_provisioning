@@ -2,9 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:blev/ble.dart';
-import 'package:blev/ble_central.dart';
-export 'package:blev/ble_central.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:uuid/uuid.dart';
 import 'package:pointycastle/pointycastle.dart';
 import 'package:pointycastle/asymmetric/oaep.dart';
@@ -25,7 +23,6 @@ class ViamBluetoothProvisioning {
   static final _cryptoKey = 'pub_key';
   static final _errorsKey = 'errors';
 
-  BleCentral? _ble;
   bool _isPoweredOn = false;
 
   final String _serviceUUID;
@@ -69,58 +66,57 @@ class ViamBluetoothProvisioning {
   );
 
   Future<void> initialize({Function(bool)? poweredOn}) async {
-    _ble = await BleCentral.create();
-    _ble?.getState().listen((state) {
-      if (state == AdapterState.poweredOn) {
+    FlutterBluePlus.setLogLevel(LogLevel.verbose, color: false);
+    // TODO: fix unused / cleanup (more hints about cleanup in the repo)
+    var subscription = FlutterBluePlus.adapterState.listen((BluetoothAdapterState state) {
+      print(state);
+      if (state == BluetoothAdapterState.on) {
+        // usually start scanning, connecting, etc
         _isPoweredOn = true;
       } else {
+        // show an error to the user, etc
         _isPoweredOn = false;
       }
       poweredOn?.call(_isPoweredOn);
     });
+    // subscription.cancel();
   }
 
   /// Scans for peripherals with the Viam bluetooth provisioning service UUID
-  Stream<DiscoveredBlePeripheral> scanForPeripherals() {
-    if (_ble == null) {
-      throw Exception('Bluetooth is not initialized');
-    }
-    if (!_isPoweredOn) {
-      throw Exception('Bluetooth is not powered on');
-    }
-    return _ble!.scanForPeripherals([_serviceUUID]);
+  Future<Stream<List<ScanResult>>> scanForPeripherals() async {
+    // if (_ble == null) {
+    //   throw Exception('Bluetooth is not initialized');
+    // }
+    // if (!_isPoweredOn) {
+    //   throw Exception('Bluetooth is not powered on');
+    // }
+    // return _ble!.scanForPeripherals([_serviceUUID]);
+    await FlutterBluePlus.startScan(withServices: [Guid(_serviceUUID)]);
+    return FlutterBluePlus.onScanResults;
   }
 
-  Future<ConnectedBlePeripheral> connectToPeripheral(DiscoveredBlePeripheral peripheral) async {
-    if (_ble == null) {
-      throw Exception('Bluetooth is not initialized');
-    }
-    if (!_isPoweredOn) {
-      throw Exception('Bluetooth is not powered on');
-    }
-    return await _ble!.connectToPeripheral(peripheral.id);
+  Future<void> connectToPeripheral(BluetoothDevice peripheral) async {
+    await peripheral.connect();
   }
 
-  Future<List<WifiNetwork>> readNetworkList(ConnectedBlePeripheral peripheral) async {
-    final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
+  Future<List<WifiNetwork>> readNetworkList(BluetoothDevice peripheral) async {
+    List<BluetoothService> services = await peripheral.discoverServices();
 
-    final networkListCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _availableWiFiNetworksUUID);
+    final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
+
+    final networkListCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _availableWiFiNetworksUUID);
     final networkListBytes = await networkListCharacteristic.read();
-    if (networkListBytes != null) {
-      return convertNetworkListBytes(networkListBytes);
-    }
-    return [];
+    return convertNetworkListBytes(Uint8List.fromList(networkListBytes));
   }
 
-  Future<({bool isConfigured, bool isConnected})> readStatus(ConnectedBlePeripheral peripheral) async {
-    final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
+  Future<({bool isConfigured, bool isConnected})> readStatus(BluetoothDevice peripheral) async {
+    List<BluetoothService> services = await peripheral.discoverServices();
 
-    final statusCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _statusUUID);
+    final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
+
+    final statusCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _statusUUID);
     final buffer = await statusCharacteristic.read();
-    final status = buffer?[0];
-    if (status == null) {
-      throw Exception('Unable to read status byte');
-    }
+    final status = buffer[0];
 
     bool isConfigured = false;
     bool isConnected = false;
@@ -140,67 +136,64 @@ class ViamBluetoothProvisioning {
     return (isConfigured: isConfigured, isConnected: isConnected);
   }
 
-  Future<String> readErrors(ConnectedBlePeripheral peripheral) async {
-    final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
+  Future<String> readErrors(BluetoothDevice peripheral) async {
+    List<BluetoothService> services = await peripheral.discoverServices();
 
-    final errorsCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _errorsUUID);
+    final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
+
+    final errorsCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _errorsUUID);
     final errorsBytes = await errorsCharacteristic.read();
-    if (errorsBytes != null) {
-      return utf8.decode(errorsBytes);
-    }
-    return '';
+    return utf8.decode(errorsBytes);
   }
 
   Future<void> writeNetworkConfig({
-    required ConnectedBlePeripheral peripheral,
+    required BluetoothDevice peripheral,
     required String ssid,
     String? pw,
   }) async {
-    final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
+    List<BluetoothService> services = await peripheral.discoverServices();
 
-    final cryptoCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _cryptoUUID);
+    final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
+
+    final cryptoCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _cryptoUUID);
     final publicKeyBytes = await cryptoCharacteristic.read();
-    if (publicKeyBytes == null) {
-      throw Exception('Unable to read public key');
-    }
-    final publicKey = _publicKey(publicKeyBytes);
+    final publicKey = _publicKey(Uint8List.fromList(publicKeyBytes));
     final encoder = _encoder(publicKey);
 
     final encodedSSID = encoder.process(utf8.encode(ssid));
-    final ssidCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _ssidUUID);
+    final ssidCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _ssidUUID);
     await ssidCharacteristic.write(encodedSSID);
 
     final encodedPW = encoder.process(utf8.encode(pw ?? 'NONE'));
-    final pskCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _pskUUID);
+    final pskCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _pskUUID);
     await pskCharacteristic.write(encodedPW);
   }
 
   Future<void> writeRobotPartConfig({
-    required ConnectedBlePeripheral peripheral,
+    required BluetoothDevice peripheral,
     required String partId,
     required String secret,
     String appAddress = 'https://app.viam.com:443',
   }) async {
-    final bleService = peripheral.services.firstWhere((service) => service.id == _serviceUUID);
+    List<BluetoothService> services = await peripheral.discoverServices();
 
-    final cryptoCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _cryptoUUID);
+    final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
+
+    final cryptoCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _cryptoUUID);
     final publicKeyBytes = await cryptoCharacteristic.read();
-    if (publicKeyBytes == null) {
-      throw Exception('Unable to read public key');
-    }
-    final publicKey = _publicKey(publicKeyBytes);
+    final publicKey = _publicKey(Uint8List.fromList(publicKeyBytes));
     final encoder = _encoder(publicKey);
 
     final encodedPartId = encoder.process(utf8.encode(partId));
-    final partIdCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _robotPartUUID);
+    final partIdCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _robotPartUUID);
     await partIdCharacteristic.write(encodedPartId);
 
     final encodedSecret = encoder.process(utf8.encode(secret));
-    final partSecretCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _robotPartSecretUUID);
+    final partSecretCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _robotPartSecretUUID);
     await partSecretCharacteristic.write(encodedSecret);
 
     final encodedAppAddress = encoder.process(utf8.encode(appAddress));
-    final appAddressCharacteristic = bleService.characteristics.firstWhere((char) => char.id == _appAddressUUID);
+    final appAddressCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _appAddressUUID);
     await appAddressCharacteristic.write(encodedAppAddress);
   }
 

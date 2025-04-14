@@ -1,12 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:viam_flutter_provisioning/viam_bluetooth_provisioning.dart';
+
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
 class ConnectedPeripheralScreen extends StatefulWidget {
   const ConnectedPeripheralScreen({super.key, required this.connectedBlePeripheral});
 
-  final ConnectedBlePeripheral connectedBlePeripheral;
+  final BluetoothDevice connectedBlePeripheral;
 
   @override
   State<ConnectedPeripheralScreen> createState() => _ConnectedPeripheralScreen();
@@ -27,13 +28,13 @@ class _ConnectedPeripheralScreen extends State<ConnectedPeripheralScreen> {
     super.dispose();
   }
 
-  void _readCharacteristic(BleCharacteristic characteristic) async {
+  void _readCharacteristic(BluetoothCharacteristic characteristic) async {
     setState(() {
       _isLoading = true;
     });
     try {
       final readBytes = await characteristic.read();
-      final readString = utf8.decode(readBytes ?? []);
+      final readString = utf8.decode(readBytes);
       _showSnackBar(readString);
     } catch (e) {
       _showSnackBar(e.toString());
@@ -44,7 +45,7 @@ class _ConnectedPeripheralScreen extends State<ConnectedPeripheralScreen> {
     }
   }
 
-  void _writeCharacteristic(BleCharacteristic characteristic, String value) async {
+  void _writeCharacteristic(BluetoothCharacteristic characteristic, String value) async {
     setState(() {
       _isLoading = true;
     });
@@ -61,11 +62,11 @@ class _ConnectedPeripheralScreen extends State<ConnectedPeripheralScreen> {
     }
   }
 
-  void _showWriteDialog(BleCharacteristic characteristic) {
+  void _showWriteDialog(BluetoothCharacteristic characteristic) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Write to: ${characteristic.id}'),
+        title: Text('Write to: ${characteristic.uuid.str}'),
         content: TextField(
           controller: _textController,
           decoration: const InputDecoration(
@@ -100,22 +101,22 @@ class _ConnectedPeripheralScreen extends State<ConnectedPeripheralScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.connectedBlePeripheral.id),
+        title: Text(widget.connectedBlePeripheral.remoteId.str),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
-              itemCount: widget.connectedBlePeripheral.services.length,
+              itemCount: widget.connectedBlePeripheral.servicesList.length,
               itemBuilder: (context, serviceIndex) {
-                final service = widget.connectedBlePeripheral.services[serviceIndex];
+                final service = widget.connectedBlePeripheral.servicesList[serviceIndex];
                 return ExpansionTile(
                   leading: const Icon(Icons.bluetooth_connected, color: Colors.blue),
-                  title: Text('Service: ${service.id}'),
+                  title: Text('Service: ${service.uuid.str}'),
                   children: service.characteristics.map((characteristic) {
                     return Padding(
                       padding: const EdgeInsets.only(left: 16.0),
                       child: ListTile(
-                        title: Text('Characteristic: ${characteristic.id}'),
+                        title: Text('Characteristic: ${characteristic.uuid.str}'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

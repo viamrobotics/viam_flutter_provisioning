@@ -1,3 +1,7 @@
+## 0.0.5
+
+- Use flutter_blue_plus as the underlying dependency
+
 ## 0.0.4
 
 - Add function for reading errors

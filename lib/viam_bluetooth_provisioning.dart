@@ -143,9 +143,9 @@ class ViamBluetoothProvisioning {
 
     final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
 
-    final fragmentCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _fragmentUUID);
-    final fragmentBytes = await fragmentCharacteristic.read();
-    return utf8.decode(fragmentBytes);
+    final fragmentIdCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _fragmentUUID);
+    final fragmentIdBytes = await fragmentIdCharacteristic.read();
+    return utf8.decode(fragmentIdBytes);
   }
 
   Future<void> writeNetworkConfig({

@@ -1,3 +1,8 @@
+## 0.0.6
+
+- Reading manufacturer support
+- Reading model support
+
 ## 0.0.5
 
 - Use flutter_blue_plus as the underlying dependency

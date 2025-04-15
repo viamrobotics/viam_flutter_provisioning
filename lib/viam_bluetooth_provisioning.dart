@@ -23,6 +23,8 @@ class ViamBluetoothProvisioning {
   static final _cryptoKey = 'pub_key';
   static final _errorsKey = 'errors';
   static final _fragmentKey = 'fragment_id';
+  static final _manufacturerKey = 'manufacturer';
+  static final _modelKey = 'model';
 
   bool _isPoweredOn = false;
 
@@ -37,6 +39,8 @@ class ViamBluetoothProvisioning {
   final String _cryptoUUID;
   final String _errorsUUID;
   final String _fragmentUUID;
+  final String _manufacturerUUID;
+  final String _modelUUID;
 
   factory ViamBluetoothProvisioning() {
     final uuid = Uuid();
@@ -52,6 +56,8 @@ class ViamBluetoothProvisioning {
       uuid.v5(_uuidNamespace, _cryptoKey),
       uuid.v5(_uuidNamespace, _errorsKey),
       uuid.v5(_uuidNamespace, _fragmentKey),
+      uuid.v5(_uuidNamespace, _manufacturerKey),
+      uuid.v5(_uuidNamespace, _modelKey),
     );
   }
 
@@ -67,6 +73,8 @@ class ViamBluetoothProvisioning {
     this._cryptoUUID,
     this._errorsUUID,
     this._fragmentUUID,
+    this._manufacturerUUID,
+    this._modelUUID,
   );
 
   Future<void> initialize({Function(bool)? poweredOn}) async {
@@ -146,6 +154,26 @@ class ViamBluetoothProvisioning {
     final fragmentIdCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _fragmentUUID);
     final fragmentIdBytes = await fragmentIdCharacteristic.read();
     return utf8.decode(fragmentIdBytes);
+  }
+
+  Future<String> readManufacturer(BluetoothDevice peripheral) async {
+    List<BluetoothService> services = await peripheral.discoverServices();
+
+    final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
+
+    final manufacturerCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _manufacturerUUID);
+    final manufacturerBytes = await manufacturerCharacteristic.read();
+    return utf8.decode(manufacturerBytes);
+  }
+
+  Future<String> readModel(BluetoothDevice peripheral) async {
+    List<BluetoothService> services = await peripheral.discoverServices();
+
+    final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
+
+    final modelCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _modelUUID);
+    final modelBytes = await modelCharacteristic.read();
+    return utf8.decode(modelBytes);
   }
 
   Future<void> writeNetworkConfig({

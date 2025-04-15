@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:viam_flutter_provisioning/viam_bluetooth_provisioning.dart';
 
 import 'provision_peripheral_screen.dart';
@@ -14,9 +15,9 @@ class ScanningScreen extends StatefulWidget {
 
 class _ScanningScreen extends State<ScanningScreen> {
   final ViamBluetoothProvisioning _provisioning = ViamBluetoothProvisioning();
-  StreamSubscription<DiscoveredBlePeripheral>? _scanSubscription;
+  StreamSubscription<List<ScanResult>>? _scanSubscription;
   final Set<String> _deviceIds = {};
-  List<DiscoveredBlePeripheral> _uniqueDevices = [];
+  List<ScanResult> _uniqueDevices = [];
   bool _isConnecting = false;
 
   @override
@@ -39,12 +40,15 @@ class _ScanningScreen extends State<ScanningScreen> {
     });
   }
 
-  void _startScan() {
-    _scanSubscription = _provisioning.scanForPeripherals().listen((device) {
+  void _startScan() async {
+    final stream = await _provisioning.scanForPeripherals();
+    _scanSubscription = stream.listen((device) {
       setState(() {
-        if (!_deviceIds.contains(device.id)) {
-          _deviceIds.add(device.id);
-          _uniqueDevices.add(device);
+        for (final result in device) {
+          if (!_deviceIds.contains(result.device.remoteId.str)) {
+            _deviceIds.add(result.device.remoteId.str);
+            _uniqueDevices.add(result);
+          }
         }
         _uniqueDevices = _uniqueDevices;
       });
@@ -56,13 +60,13 @@ class _ScanningScreen extends State<ScanningScreen> {
     _scanSubscription = null;
   }
 
-  void _connect(DiscoveredBlePeripheral device) async {
+  void _connect(BluetoothDevice device) async {
     setState(() {
       _isConnecting = true;
     });
     try {
-      final connectedPeripheral = await _provisioning.connectToPeripheral(device);
-      _pushToConnectedScreen(connectedPeripheral);
+      await _provisioning.connectToPeripheral(device);
+      _pushToConnectedScreen(device);
     } catch (e) {
       print(e);
     }
@@ -71,7 +75,7 @@ class _ScanningScreen extends State<ScanningScreen> {
     });
   }
 
-  void _pushToConnectedScreen(ConnectedBlePeripheral connectedPeripheral) {
+  void _pushToConnectedScreen(BluetoothDevice connectedPeripheral) {
     if (context.mounted) {
       Navigator.push(
         context,
@@ -98,9 +102,13 @@ class _ScanningScreen extends State<ScanningScreen> {
               itemBuilder: (context, index) {
                 return ListTile(
                   leading: Icon(Icons.bluetooth, color: Colors.blue),
-                  title: Text(_uniqueDevices[index].name?.isNotEmpty == true ? _uniqueDevices[index].name! : 'Untitled'),
-                  subtitle: Text(_uniqueDevices[index].id),
-                  onTap: () => _connect(_uniqueDevices[index]),
+                  title: Text(
+                    _uniqueDevices[index].advertisementData.advName.isNotEmpty
+                        ? _uniqueDevices[index].advertisementData.advName
+                        : 'Untitled',
+                  ),
+                  subtitle: Text(_uniqueDevices[index].device.remoteId.str),
+                  onTap: () => _connect(_uniqueDevices[index].device),
                 );
               },
             ),

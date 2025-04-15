@@ -22,6 +22,7 @@ class ViamBluetoothProvisioning {
   static final _statusKey = 'status';
   static final _cryptoKey = 'pub_key';
   static final _errorsKey = 'errors';
+  static final _fragmentKey = 'fragment_id';
 
   bool _isPoweredOn = false;
 
@@ -35,6 +36,7 @@ class ViamBluetoothProvisioning {
   final String _statusUUID;
   final String _cryptoUUID;
   final String _errorsUUID;
+  final String _fragmentUUID;
 
   factory ViamBluetoothProvisioning() {
     final uuid = Uuid();
@@ -49,6 +51,7 @@ class ViamBluetoothProvisioning {
       uuid.v5(_uuidNamespace, _statusKey),
       uuid.v5(_uuidNamespace, _cryptoKey),
       uuid.v5(_uuidNamespace, _errorsKey),
+      uuid.v5(_uuidNamespace, _fragmentKey),
     );
   }
 
@@ -63,6 +66,7 @@ class ViamBluetoothProvisioning {
     this._statusUUID,
     this._cryptoUUID,
     this._errorsUUID,
+    this._fragmentUUID,
   );
 
   Future<void> initialize({Function(bool)? poweredOn}) async {
@@ -132,6 +136,16 @@ class ViamBluetoothProvisioning {
     final errorsCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _errorsUUID);
     final errorsBytes = await errorsCharacteristic.read();
     return utf8.decode(errorsBytes);
+  }
+
+  Future<String> readFragmentId(BluetoothDevice peripheral) async {
+    List<BluetoothService> services = await peripheral.discoverServices();
+
+    final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
+
+    final fragmentCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _fragmentUUID);
+    final fragmentBytes = await fragmentCharacteristic.read();
+    return utf8.decode(fragmentBytes);
   }
 
   Future<void> writeNetworkConfig({

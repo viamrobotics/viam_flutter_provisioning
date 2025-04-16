@@ -126,9 +126,9 @@ class ViamBluetoothProvisioning {
       case 1:
         isConfigured = true;
       case 2:
-        isConfigured = false;
+        isConnected = true;
       case 3:
-        isConfigured = false;
+        isConfigured = true;
         isConnected = true;
       default:
         throw Exception('Invalid status');

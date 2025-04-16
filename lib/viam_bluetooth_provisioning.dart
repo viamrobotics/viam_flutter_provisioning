@@ -10,224 +10,56 @@ import 'package:pointycastle/asymmetric/rsa.dart';
 
 import 'wifi_network.dart';
 
+// MV
+class ViamBluetoothUUIDs {
+  static String serviceUUID = _uuid.v5(_namespace, _serviceNameKey);
+  static String availableWiFiNetworksUUID = _uuid.v5(_namespace, _availableWiFiNetworksKey);
+  static String ssidUUID = _uuid.v5(_namespace, _ssidKey);
+  static String pskUUID = _uuid.v5(_namespace, _pskKey);
+  static String robotPartUUID = _uuid.v5(_namespace, _robotPartIDKey);
+  static String robotPartSecretUUID = _uuid.v5(_namespace, _robotPartSecretKey);
+  static String appAddressUUID = _uuid.v5(_namespace, _appAddressKey);
+  static String statusUUID = _uuid.v5(_namespace, _statusKey);
+  static String cryptoUUID = _uuid.v5(_namespace, _cryptoKey);
+  static String errorsUUID = _uuid.v5(_namespace, _errorsKey);
+  static String fragmentUUID = _uuid.v5(_namespace, _fragmentKey);
+  static String manufacturerUUID = _uuid.v5(_namespace, _manufacturerKey);
+  static String modelUUID = _uuid.v5(_namespace, _modelKey);
+
+  static const String _namespace = '74a942f4-0f45-43f4-88ca-f87021ae36ea';
+  static const String _serviceNameKey = 'viam-provisioning';
+  static const String _availableWiFiNetworksKey = 'networks';
+  static const String _ssidKey = 'ssid';
+  static const String _pskKey = 'psk';
+  static const String _robotPartIDKey = 'id';
+  static const String _robotPartSecretKey = 'secret';
+  static const String _appAddressKey = 'app_address';
+  static const String _statusKey = 'status';
+  static const String _cryptoKey = 'pub_key';
+  static const String _errorsKey = 'errors';
+  static const String _fragmentKey = 'fragment_id';
+  static const String _manufacturerKey = 'manufacturer';
+  static const String _modelKey = 'model';
+  static final _uuid = Uuid();
+}
+
 class ViamBluetoothProvisioning {
-  static final _uuidNamespace = '74a942f4-0f45-43f4-88ca-f87021ae36ea';
-  static final _serviceNameKey = 'viam-provisioning';
-  static final _availableWiFiNetworksKey = 'networks';
-  static final _ssidKey = 'ssid';
-  static final _pskKey = 'psk';
-  static final _robotPartIDKey = 'id';
-  static final _robotPartSecretKey = 'secret';
-  static final _appAddressKey = 'app_address';
-  static final _statusKey = 'status';
-  static final _cryptoKey = 'pub_key';
-  static final _errorsKey = 'errors';
-  static final _fragmentKey = 'fragment_id';
-  static final _manufacturerKey = 'manufacturer';
-  static final _modelKey = 'model';
-
-  bool _isPoweredOn = false;
-
-  final String _serviceUUID;
-  final String _availableWiFiNetworksUUID;
-  final String _ssidUUID;
-  final String _pskUUID;
-  final String _robotPartUUID;
-  final String _robotPartSecretUUID;
-  final String _appAddressUUID;
-  final String _statusUUID;
-  final String _cryptoUUID;
-  final String _errorsUUID;
-  final String _fragmentUUID;
-  final String _manufacturerUUID;
-  final String _modelUUID;
-
-  factory ViamBluetoothProvisioning() {
-    final uuid = Uuid();
-    return ViamBluetoothProvisioning._(
-      uuid.v5(_uuidNamespace, _serviceNameKey),
-      uuid.v5(_uuidNamespace, _availableWiFiNetworksKey),
-      uuid.v5(_uuidNamespace, _ssidKey),
-      uuid.v5(_uuidNamespace, _pskKey),
-      uuid.v5(_uuidNamespace, _robotPartIDKey),
-      uuid.v5(_uuidNamespace, _robotPartSecretKey),
-      uuid.v5(_uuidNamespace, _appAddressKey),
-      uuid.v5(_uuidNamespace, _statusKey),
-      uuid.v5(_uuidNamespace, _cryptoKey),
-      uuid.v5(_uuidNamespace, _errorsKey),
-      uuid.v5(_uuidNamespace, _fragmentKey),
-      uuid.v5(_uuidNamespace, _manufacturerKey),
-      uuid.v5(_uuidNamespace, _modelKey),
-    );
-  }
-
-  ViamBluetoothProvisioning._(
-    this._serviceUUID,
-    this._availableWiFiNetworksUUID,
-    this._ssidUUID,
-    this._pskUUID,
-    this._robotPartUUID,
-    this._robotPartSecretUUID,
-    this._appAddressUUID,
-    this._statusUUID,
-    this._cryptoUUID,
-    this._errorsUUID,
-    this._fragmentUUID,
-    this._manufacturerUUID,
-    this._modelUUID,
-  );
-
-  Future<void> initialize({Function(bool)? poweredOn}) async {
+  static Future<void> initialize({Function(bool)? poweredOn}) async {
     FlutterBluePlus.setLogLevel(LogLevel.verbose, color: false);
     FlutterBluePlus.adapterState.listen((BluetoothAdapterState state) {
       if (state == BluetoothAdapterState.on) {
-        _isPoweredOn = true;
+        poweredOn?.call(true);
       } else {
-        _isPoweredOn = false;
+        poweredOn?.call(false);
       }
-      poweredOn?.call(_isPoweredOn);
     });
   }
 
   /// Scans for peripherals with the Viam bluetooth provisioning service UUID
-  Future<Stream<List<ScanResult>>> scanForPeripherals() async {
-    await FlutterBluePlus.startScan(withServices: [Guid(_serviceUUID)]);
+  static Future<Stream<List<ScanResult>>> scanForPeripherals() async {
+    await FlutterBluePlus.startScan(withServices: [Guid(ViamBluetoothUUIDs.serviceUUID)]);
     return FlutterBluePlus.onScanResults;
   }
-
-  Future<void> connectToPeripheral(BluetoothDevice peripheral) async {
-    await peripheral.connect();
-  }
-
-  Future<List<WifiNetwork>> readNetworkList(BluetoothDevice peripheral) async {
-    List<BluetoothService> services = await peripheral.discoverServices();
-
-    final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
-
-    final networkListCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _availableWiFiNetworksUUID);
-    final networkListBytes = await networkListCharacteristic.read();
-    return convertNetworkListBytes(Uint8List.fromList(networkListBytes));
-  }
-
-  Future<({bool isConfigured, bool isConnected})> readStatus(BluetoothDevice peripheral) async {
-    List<BluetoothService> services = await peripheral.discoverServices();
-
-    final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
-
-    final statusCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _statusUUID);
-    final buffer = await statusCharacteristic.read();
-    final status = buffer[0];
-
-    bool isConfigured = false;
-    bool isConnected = false;
-    switch (status) {
-      case 0:
-        break;
-      case 1:
-        isConfigured = true;
-      case 2:
-        isConnected = true;
-      case 3:
-        isConfigured = true;
-        isConnected = true;
-      default:
-        throw Exception('Invalid status');
-    }
-    return (isConfigured: isConfigured, isConnected: isConnected);
-  }
-
-  Future<String> readErrors(BluetoothDevice peripheral) async {
-    List<BluetoothService> services = await peripheral.discoverServices();
-
-    final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
-
-    final errorsCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _errorsUUID);
-    final errorsBytes = await errorsCharacteristic.read();
-    return utf8.decode(errorsBytes);
-  }
-
-  Future<String> readFragmentId(BluetoothDevice peripheral) async {
-    List<BluetoothService> services = await peripheral.discoverServices();
-
-    final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
-
-    final fragmentIdCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _fragmentUUID);
-    final fragmentIdBytes = await fragmentIdCharacteristic.read();
-    return utf8.decode(fragmentIdBytes);
-  }
-
-  Future<String> readManufacturer(BluetoothDevice peripheral) async {
-    List<BluetoothService> services = await peripheral.discoverServices();
-
-    final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
-
-    final manufacturerCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _manufacturerUUID);
-    final manufacturerBytes = await manufacturerCharacteristic.read();
-    return utf8.decode(manufacturerBytes);
-  }
-
-  Future<String> readModel(BluetoothDevice peripheral) async {
-    List<BluetoothService> services = await peripheral.discoverServices();
-
-    final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
-
-    final modelCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _modelUUID);
-    final modelBytes = await modelCharacteristic.read();
-    return utf8.decode(modelBytes);
-  }
-
-  Future<void> writeNetworkConfig({
-    required BluetoothDevice peripheral,
-    required String ssid,
-    String? pw,
-  }) async {
-    List<BluetoothService> services = await peripheral.discoverServices();
-
-    final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
-
-    final cryptoCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _cryptoUUID);
-    final publicKeyBytes = await cryptoCharacteristic.read();
-    final publicKey = _publicKey(Uint8List.fromList(publicKeyBytes));
-    final encoder = _encoder(publicKey);
-
-    final encodedSSID = encoder.process(utf8.encode(ssid));
-    final ssidCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _ssidUUID);
-    await ssidCharacteristic.write(encodedSSID);
-
-    final encodedPW = encoder.process(utf8.encode(pw ?? 'NONE'));
-    final pskCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _pskUUID);
-    await pskCharacteristic.write(encodedPW);
-  }
-
-  Future<void> writeRobotPartConfig({
-    required BluetoothDevice peripheral,
-    required String partId,
-    required String secret,
-    String appAddress = 'https://app.viam.com:443',
-  }) async {
-    List<BluetoothService> services = await peripheral.discoverServices();
-
-    final bleService = services.firstWhere((service) => service.uuid.str == _serviceUUID);
-
-    final cryptoCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _cryptoUUID);
-    final publicKeyBytes = await cryptoCharacteristic.read();
-    final publicKey = _publicKey(Uint8List.fromList(publicKeyBytes));
-    final encoder = _encoder(publicKey);
-
-    final encodedPartId = encoder.process(utf8.encode(partId));
-    final partIdCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _robotPartUUID);
-    await partIdCharacteristic.write(encodedPartId);
-
-    final encodedSecret = encoder.process(utf8.encode(secret));
-    final partSecretCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _robotPartSecretUUID);
-    await partSecretCharacteristic.write(encodedSecret);
-
-    final encodedAppAddress = encoder.process(utf8.encode(appAddress));
-    final appAddressCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == _appAddressUUID);
-    await appAddressCharacteristic.write(encodedAppAddress);
-  }
-
-  // Helper functions
 
   static List<WifiNetwork> convertNetworkListBytes(Uint8List bytes) {
     int currentIndex = 0;
@@ -252,8 +84,144 @@ class ViamBluetoothProvisioning {
     }
     return networks;
   }
+}
 
-  RSAPublicKey _publicKey(Uint8List keyBytes) {
+// MV - ViamReading+BluetoothDevice.dart
+extension ViamReading on BluetoothDevice {
+  Future<List<WifiNetwork>> readNetworkList() async {
+    List<BluetoothService> services = await discoverServices();
+
+    final bleService = services.firstWhere((service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID);
+
+    final networkListCharacteristic = bleService.characteristics.firstWhere(
+      (char) => char.uuid.str == ViamBluetoothUUIDs.availableWiFiNetworksUUID,
+    );
+    final networkListBytes = await networkListCharacteristic.read();
+    return ViamBluetoothProvisioning.convertNetworkListBytes(Uint8List.fromList(networkListBytes));
+  }
+
+  Future<({bool isConfigured, bool isConnected})> readStatus() async {
+    List<BluetoothService> services = await discoverServices();
+
+    final bleService = services.firstWhere((service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID);
+
+    final statusCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.statusUUID);
+    final buffer = await statusCharacteristic.read();
+    final status = buffer[0];
+
+    bool isConfigured = false;
+    bool isConnected = false;
+    switch (status) {
+      case 0:
+        break;
+      case 1:
+        isConfigured = true;
+      case 2:
+        isConnected = true;
+      case 3:
+        isConfigured = true;
+        isConnected = true;
+      default:
+        throw Exception('Invalid status');
+    }
+    return (isConfigured: isConfigured, isConnected: isConnected);
+  }
+
+  Future<String> readErrors() async {
+    List<BluetoothService> services = await discoverServices();
+
+    final bleService = services.firstWhere((service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID);
+
+    final errorsCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.errorsUUID);
+    final errorsBytes = await errorsCharacteristic.read();
+    return utf8.decode(errorsBytes);
+  }
+
+  Future<String> readFragmentId() async {
+    List<BluetoothService> services = await discoverServices();
+
+    final bleService = services.firstWhere((service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID);
+
+    final fragmentIdCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.fragmentUUID);
+    final fragmentIdBytes = await fragmentIdCharacteristic.read();
+    return utf8.decode(fragmentIdBytes);
+  }
+
+  Future<String> readManufacturer() async {
+    List<BluetoothService> services = await discoverServices();
+
+    final bleService = services.firstWhere((service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID);
+
+    final manufacturerCharacteristic =
+        bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.manufacturerUUID);
+    final manufacturerBytes = await manufacturerCharacteristic.read();
+    return utf8.decode(manufacturerBytes);
+  }
+
+  Future<String> readModel() async {
+    List<BluetoothService> services = await discoverServices();
+
+    final bleService = services.firstWhere((service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID);
+
+    final modelCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.modelUUID);
+    final modelBytes = await modelCharacteristic.read();
+    return utf8.decode(modelBytes);
+  }
+}
+
+// MV - ViamWriting+BluetoothDevice.dart
+extension ViamWriting on BluetoothDevice {
+  Future<void> writeNetworkConfig({
+    required String ssid,
+    String? pw,
+  }) async {
+    List<BluetoothService> services = await discoverServices();
+
+    final bleService = services.firstWhere((service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID);
+
+    final cryptoCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.cryptoUUID);
+    final publicKeyBytes = await cryptoCharacteristic.read();
+    final publicKey = _publicKey(Uint8List.fromList(publicKeyBytes));
+    final encoder = _encoder(publicKey);
+
+    final encodedSSID = encoder.process(utf8.encode(ssid));
+    final ssidCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.ssidUUID);
+    await ssidCharacteristic.write(encodedSSID);
+
+    final encodedPW = encoder.process(utf8.encode(pw ?? 'NONE'));
+    final pskCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.pskUUID);
+    await pskCharacteristic.write(encodedPW);
+  }
+
+  Future<void> writeRobotPartConfig({
+    required String partId,
+    required String secret,
+    String appAddress = 'https://app.viam.com:443',
+  }) async {
+    List<BluetoothService> services = await discoverServices();
+
+    final bleService = services.firstWhere((service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID);
+
+    final cryptoCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.cryptoUUID);
+    final publicKeyBytes = await cryptoCharacteristic.read();
+    final publicKey = _publicKey(Uint8List.fromList(publicKeyBytes));
+    final encoder = _encoder(publicKey);
+
+    final encodedPartId = encoder.process(utf8.encode(partId));
+    final partIdCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.robotPartUUID);
+    await partIdCharacteristic.write(encodedPartId);
+
+    final encodedSecret = encoder.process(utf8.encode(secret));
+    final partSecretCharacteristic =
+        bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.robotPartSecretUUID);
+    await partSecretCharacteristic.write(encodedSecret);
+
+    final encodedAppAddress = encoder.process(utf8.encode(appAddress));
+    final appAddressCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.appAddressUUID);
+    await appAddressCharacteristic.write(encodedAppAddress);
+  }
+
+  static RSAPublicKey _publicKey(Uint8List keyBytes) {
     final parser = ASN1Parser(keyBytes);
     final topLevelSeq = parser.nextObject() as ASN1Sequence;
 
@@ -270,7 +238,7 @@ class ViamBluetoothProvisioning {
     return RSAPublicKey(modulus, exponent);
   }
 
-  OAEPEncoding _encoder(RSAPublicKey publicKey) {
+  static OAEPEncoding _encoder(RSAPublicKey publicKey) {
     return OAEPEncoding.withSHA256(RSAEngine())..init(true, PublicKeyParameter<RSAPublicKey>(publicKey));
   }
 }

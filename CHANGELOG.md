@@ -1,3 +1,7 @@
+## 0.0.7
+
+- Fix reading status
+
 ## 0.0.6
 
 - Reading manufacturer support

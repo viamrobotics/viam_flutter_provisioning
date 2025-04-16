@@ -103,9 +103,7 @@ class _ScanningScreen extends State<ScanningScreen> {
                 return ListTile(
                   leading: Icon(Icons.bluetooth, color: Colors.blue),
                   title: Text(
-                    _uniqueDevices[index].advertisementData.advName.isNotEmpty
-                        ? _uniqueDevices[index].advertisementData.advName
-                        : 'Untitled',
+                    _uniqueDevices[index].device.platformName.isNotEmpty ? _uniqueDevices[index].device.platformName : 'Untitled',
                   ),
                   subtitle: Text(_uniqueDevices[index].device.remoteId.str),
                   onTap: () => _connect(_uniqueDevices[index].device),

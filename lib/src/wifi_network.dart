@@ -1,3 +1,5 @@
+part of '../viam_bluetooth_provisioning.dart';
+
 class WifiNetwork {
   final String ssid;
   final int signalStrength;

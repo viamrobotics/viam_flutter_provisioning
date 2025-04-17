@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:viam_flutter_provisioning/viam_bluetooth_provisioning.dart';
 
 class ProvisionPeripheralScreen extends StatefulWidget {
-  const ProvisionPeripheralScreen({super.key, required this.provisioning, required this.connectedBlePeripheral});
+  const ProvisionPeripheralScreen({super.key, required this.device});
 
-  final ViamBluetoothProvisioning provisioning;
-  final BluetoothDevice connectedBlePeripheral;
+  final BluetoothDevice device;
 
   @override
   State<ProvisionPeripheralScreen> createState() => _ProvisionPeripheralScreen();
@@ -53,12 +51,13 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
       _isLoadingNetworkList = true;
     });
     try {
-      final networkList = await widget.provisioning.readNetworkList(widget.connectedBlePeripheral);
+      final networkList = await widget.device.readNetworkList();
       setState(() {
         _networkList = networkList.map((network) => network.ssid).toList();
         _isLoadingNetworkList = false;
       });
     } catch (e) {
+      // ignore: avoid_print
       print('Error reading network list: ${e.toString()}');
     } finally {
       setState(() {
@@ -72,7 +71,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
       _isLoadingStatus = true;
     });
     try {
-      final status = await widget.provisioning.readStatus(widget.connectedBlePeripheral);
+      final status = await widget.device.readStatus();
       final isConfigured = status.isConfigured;
       final isConnected = status.isConnected;
       setState(() {
@@ -80,6 +79,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
         _isConnected = isConnected;
       });
     } catch (e) {
+      // ignore: avoid_print
       print('Error reading status: ${e.toString()}');
     } finally {
       setState(() {
@@ -95,13 +95,13 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     try {
       final ssid = _ssidTextController.text;
       final passkey = _passkeyTextController.text;
-      await widget.provisioning.writeNetworkConfig(
-        peripheral: widget.connectedBlePeripheral,
+      await widget.device.writeNetworkConfig(
         ssid: ssid,
         pw: passkey,
       );
       _showSnackBar('Wrote network config');
     } catch (e) {
+      // ignore: avoid_print
       print('Error writing network config: ${e.toString()}');
     } finally {
       setState(() {
@@ -118,14 +118,14 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
       final partId = _partIdTextController.text;
       final secret = _secretTextController.text;
       final appAddress = _appAddressTextController.text;
-      await widget.provisioning.writeRobotPartConfig(
-        peripheral: widget.connectedBlePeripheral,
+      await widget.device.writeRobotPartConfig(
         partId: partId,
         secret: secret,
         appAddress: appAddress,
       );
       _showSnackBar('Wrote robot part config');
     } catch (e) {
+      // ignore: avoid_print
       print('Error writing robot part config: ${e.toString()}');
     } finally {
       setState(() {
@@ -155,7 +155,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.connectedBlePeripheral.remoteId.str),
+        title: Text(widget.device.remoteId.str),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

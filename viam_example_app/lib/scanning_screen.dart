@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:viam_flutter_provisioning/viam_bluetooth_provisioning.dart';
 
 import 'provision_peripheral_screen.dart';
@@ -14,7 +13,6 @@ class ScanningScreen extends StatefulWidget {
 }
 
 class _ScanningScreen extends State<ScanningScreen> {
-  final ViamBluetoothProvisioning _provisioning = ViamBluetoothProvisioning();
   StreamSubscription<List<ScanResult>>? _scanSubscription;
   final Set<String> _deviceIds = {};
   List<ScanResult> _uniqueDevices = [];
@@ -33,7 +31,7 @@ class _ScanningScreen extends State<ScanningScreen> {
   }
 
   void _initialize() async {
-    await _provisioning.initialize(poweredOn: (poweredOn) {
+    await ViamBluetoothProvisioning.initialize(poweredOn: (poweredOn) {
       if (poweredOn) {
         _startScan();
       }
@@ -41,7 +39,7 @@ class _ScanningScreen extends State<ScanningScreen> {
   }
 
   void _startScan() async {
-    final stream = await _provisioning.scanForPeripherals();
+    final stream = await ViamBluetoothProvisioning.scanForPeripherals();
     _scanSubscription = stream.listen((device) {
       setState(() {
         for (final result in device) {
@@ -65,9 +63,10 @@ class _ScanningScreen extends State<ScanningScreen> {
       _isConnecting = true;
     });
     try {
-      await _provisioning.connectToPeripheral(device);
+      await device.connect();
       _pushToConnectedScreen(device);
     } catch (e) {
+      // ignore: avoid_print
       print(e);
     }
     setState(() {
@@ -75,15 +74,12 @@ class _ScanningScreen extends State<ScanningScreen> {
     });
   }
 
-  void _pushToConnectedScreen(BluetoothDevice connectedPeripheral) {
+  void _pushToConnectedScreen(BluetoothDevice device) {
     if (context.mounted) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => ProvisionPeripheralScreen(
-            connectedBlePeripheral: connectedPeripheral,
-            provisioning: _provisioning,
-          ),
+          builder: (context) => ProvisionPeripheralScreen(device: device),
         ),
       );
     }

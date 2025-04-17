@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:viam_flutter_provisioning/viam_bluetooth_provisioning.dart';
 
 import 'provision_peripheral_screen.dart';
@@ -67,6 +66,7 @@ class _ScanningScreen extends State<ScanningScreen> {
       await device.connect();
       _pushToConnectedScreen(device);
     } catch (e) {
+      // ignore: avoid_print
       print(e);
     }
     setState(() {

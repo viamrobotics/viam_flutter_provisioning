@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:viam_flutter_provisioning/viam_bluetooth_provisioning.dart';
 
 class ProvisionPeripheralScreen extends StatefulWidget {
@@ -58,6 +57,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
         _isLoadingNetworkList = false;
       });
     } catch (e) {
+      // ignore: avoid_print
       print('Error reading network list: ${e.toString()}');
     } finally {
       setState(() {
@@ -79,6 +79,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
         _isConnected = isConnected;
       });
     } catch (e) {
+      // ignore: avoid_print
       print('Error reading status: ${e.toString()}');
     } finally {
       setState(() {
@@ -100,6 +101,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
       );
       _showSnackBar('Wrote network config');
     } catch (e) {
+      // ignore: avoid_print
       print('Error writing network config: ${e.toString()}');
     } finally {
       setState(() {
@@ -123,6 +125,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
       );
       _showSnackBar('Wrote robot part config');
     } catch (e) {
+      // ignore: avoid_print
       print('Error writing robot part config: ${e.toString()}');
     } finally {
       setState(() {

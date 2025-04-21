@@ -1,7 +1,7 @@
 
 ## Viam Flutter Provisioning (Bluetooth)
 
-Package for provisioning machines using Bluetooth and [viam-agent]([https://docs.viam.com/manage/fleet/provision/setup/](https://github.com/viamrobotics/agent).
+Package for provisioning machines using Bluetooth and [viam-agent](https://docs.viam.com/manage/fleet/provision/setup/](https://github.com/viamrobotics/agent).
 
 Hotspot provisioning could be added here though that functionality exists in Viam's main [Flutter SDK](https://github.com/viamrobotics/viam-flutter-sdk/blob/main/lib/src/app/provisioning.dart).
 

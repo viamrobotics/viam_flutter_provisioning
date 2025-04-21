@@ -1,3 +1,8 @@
+## 0.0.8
+
+- Refactor to use extensions on `BluetoothDevice` from `flutter_blue_plus` for majority of the functionality
+- `ViamBluetoothProvisioning` only uses static functions (no internal state needed for powered on tracking)
+
 ## 0.0.7
 
 - Fix reading status

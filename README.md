@@ -7,7 +7,9 @@ Hotspot provisioning could be added here though that functionality exists in Via
 
 This package is built on top of [flutter_blue_plus](https://github.com/chipweinberger/flutter_blue_plus/tree/master). If you're using another library for Bluetooth this could serve as a guide for your own implementation. Feel free to open a PR adding support for another library.
 
-[example pic]
+![IMG_2981](https://github.com/user-attachments/assets/1078bf15-d80b-42d9-b617-65997dc46ef7)
+![IMG_2982](https://github.com/user-attachments/assets/650986a9-d46e-49a9-905e-83ccfe79dd54)
+
 
 When running the example app you will need to run on a physical device to discover nearby devices running `viam-agent` with Bluetooth provisioning.
 

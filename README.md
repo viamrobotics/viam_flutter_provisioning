@@ -89,4 +89,4 @@ After connecting, the Viam specific extensions for reading and writing can be ca
 
 To provision you should write the network config and robot part config at the same time (for now). Or as close together as possible.
 
-After writing these configurations successfully your device should come online on `app.viam.com` after a short period!
+After writing these configurations successfully your device should come online on app.viam.com after a short period!

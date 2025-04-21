@@ -1,11 +1,11 @@
 
 ## Viam Flutter Provisioning (Bluetooth)
 
-Package for provisioning Viam machines using Bluetooth and [viam-agent](https://docs.viam.com/manage/fleet/provision/setup/).
+Package for provisioning machines using Bluetooth and [viam-agent](https://docs.viam.com/manage/fleet/provision/setup/).
 
 Hotspot provisioning could be added here though that functionality exists in Viam's main [Flutter SDK](https://github.com/viamrobotics/viam-flutter-sdk/blob/main/lib/src/app/provisioning.dart).
 
-This package is built on top of [flutter_blue_plus](https://github.com/chipweinberger/flutter_blue_plus/tree/master). If you're using another library for Bluetooth this could serve as a guide for your own implementation. Or feel free to open a PR adding support for another library.
+This package is built on top of [flutter_blue_plus](https://github.com/chipweinberger/flutter_blue_plus/tree/master). If you're using another library for Bluetooth this could serve as a guide for your own implementation. Feel free to open a PR adding support for another library.
 
 [example pic]
 
@@ -55,10 +55,10 @@ This library does not handle asking for Bluetooth related permissions. Before in
 And if you want to customize your scanning you can easily use the underlying library directly:
 
 ```
-    await FlutterBluePlus.startScan(withServices: [Guid(ViamBluetoothUUIDs.serviceUUID)]); // bluetooth service id!
+  await FlutterBluePlus.startScan(withServices: [Guid(ViamBluetoothUUIDs.serviceUUID)]); // bluetooth service id!
 ```
 
-Once you have a device you can connect by calling `device.connect()`.
+Once you have a device you can connect by calling `device.connect()`
 
 After connecting, the Viam specific extensions for reading and writing can be called on the connected device.
 
@@ -70,7 +70,8 @@ After connecting, the Viam specific extensions for reading and writing can be ca
   final status = await widget.device.readStatus();
   final isConfigured = status.isConfigured;
   final isConnected = status.isConnected;
-  ...
+
+  // there are additional methods for reading errors, manufacturer, model, etc.!
 ```  
 
 ### Writing
@@ -80,9 +81,6 @@ After connecting, the Viam specific extensions for reading and writing can be ca
     ssid: 'Network',
     pw: 'password',
   );
-```
-
-```
   await device.writeRobotPartConfig(
     partId: 'id',
     secret: 'secret,
@@ -90,3 +88,5 @@ After connecting, the Viam specific extensions for reading and writing can be ca
 ```
 
 To provision you should write the network config and robot part config at the same time (for now). Or as close together as possible.
+
+After writing these configurations successfully your device should come online on `app.viam.com` after a short period!

@@ -23,7 +23,7 @@ This library does not handle asking for Bluetooth related permissions. Before in
 
 ### Initializing/Scanning
 
-```
+```dart
   ...
   StreamSubscription<List<ScanResult>>? _scanSubscription;
   final Set<String> _deviceIds = {};
@@ -56,7 +56,7 @@ This library does not handle asking for Bluetooth related permissions. Before in
 
 And if you want to customize your scanning you can easily use the underlying library directly:
 
-```
+```dart
   await FlutterBluePlus.startScan(withServices: [Guid(ViamBluetoothUUIDs.serviceUUID)]); // bluetooth service id!
 ```
 
@@ -66,7 +66,7 @@ After connecting, the Viam specific extensions for reading and writing can be ca
 
 ### Reading
 
-```
+```dart
   final networkList = await widget.device.readNetworkList();
 
   final status = await widget.device.readStatus();
@@ -78,7 +78,7 @@ After connecting, the Viam specific extensions for reading and writing can be ca
 
 ### Writing
 
-```
+```dart
   await device.writeNetworkConfig(
     ssid: 'Network',
     pw: 'password',

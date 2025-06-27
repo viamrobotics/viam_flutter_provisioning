@@ -12,7 +12,10 @@ class StartScreen extends StatelessWidget {
     if (Platform.isAndroid) {
       final scanStatus = await Permission.bluetoothScan.request();
       final connectStatus = await Permission.bluetoothConnect.request();
-      if (scanStatus == PermissionStatus.granted && connectStatus == PermissionStatus.granted) {
+      final locationStatus = await Permission.locationWhenInUse.request();
+      if (scanStatus == PermissionStatus.granted &&
+          connectStatus == PermissionStatus.granted &&
+          locationStatus == PermissionStatus.granted) {
         if (context.mounted) {
           Navigator.push(context, MaterialPageRoute(builder: (context) => ScanningScreen()));
         }

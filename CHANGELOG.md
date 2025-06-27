@@ -1,3 +1,8 @@
+## 0.0.9
+
+- New characteristic to write to exit provisioning
+- New characteristic to read agent version
+
 ## 0.0.8
 
 - Refactor to use extensions on `BluetoothDevice` from `flutter_blue_plus` for majority of the functionality

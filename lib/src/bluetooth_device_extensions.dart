@@ -102,6 +102,7 @@ extension ViamWriting on BluetoothDevice {
   Future<void> writeNetworkConfig({
     required String ssid,
     String? pw,
+    String psk = 'viamsetup',
   }) async {
     List<BluetoothService> services = await discoverServices();
 
@@ -112,11 +113,11 @@ extension ViamWriting on BluetoothDevice {
     final publicKey = _publicKey(Uint8List.fromList(publicKeyBytes));
     final encoder = _encoder(publicKey);
 
-    final encodedSSID = encoder.process(utf8.encode(ssid));
+    final encodedSSID = encoder.process(utf8.encode('$psk:$ssid'));
     final ssidCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.ssidUUID);
     await ssidCharacteristic.write(encodedSSID);
 
-    final encodedPW = encoder.process(utf8.encode(pw ?? 'NONE'));
+    final encodedPW = encoder.process(utf8.encode('$psk:${pw ?? 'NONE'}'));
     final pskCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.pskUUID);
     await pskCharacteristic.write(encodedPW);
   }
@@ -125,6 +126,7 @@ extension ViamWriting on BluetoothDevice {
     required String partId,
     required String secret,
     String appAddress = 'https://app.viam.com:443',
+    String psk = 'viamsetup',
   }) async {
     List<BluetoothService> services = await discoverServices();
 
@@ -135,21 +137,21 @@ extension ViamWriting on BluetoothDevice {
     final publicKey = _publicKey(Uint8List.fromList(publicKeyBytes));
     final encoder = _encoder(publicKey);
 
-    final encodedPartId = encoder.process(utf8.encode(partId));
+    final encodedPartId = encoder.process(utf8.encode('$psk:$partId'));
     final partIdCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.robotPartUUID);
     await partIdCharacteristic.write(encodedPartId);
 
-    final encodedSecret = encoder.process(utf8.encode(secret));
+    final encodedSecret = encoder.process(utf8.encode('$psk:$secret'));
     final partSecretCharacteristic =
         bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.robotPartSecretUUID);
     await partSecretCharacteristic.write(encodedSecret);
 
-    final encodedAppAddress = encoder.process(utf8.encode(appAddress));
+    final encodedAppAddress = encoder.process(utf8.encode('$psk:$appAddress'));
     final appAddressCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.appAddressUUID);
     await appAddressCharacteristic.write(encodedAppAddress);
   }
 
-  Future<void> exitProvisioning() async {
+  Future<void> exitProvisioning({String psk = 'viamsetup'}) async {
     List<BluetoothService> services = await discoverServices();
 
     final bleService = services.firstWhere((service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID);
@@ -163,7 +165,7 @@ extension ViamWriting on BluetoothDevice {
       (char) => char.uuid.str == ViamBluetoothUUIDs.exitProvisioningUUID,
     );
     // "1" is arbitrary
-    await exitProvisioningCharacteristic.write(encoder.process(utf8.encode("1")));
+    await exitProvisioningCharacteristic.write(encoder.process(utf8.encode("$psk:1")));
   }
 
   static RSAPublicKey _publicKey(Uint8List keyBytes) {

@@ -14,6 +14,8 @@ class ViamBluetoothUUIDs {
   static String fragmentUUID = _uuid.v5(_namespace, _fragmentKey);
   static String manufacturerUUID = _uuid.v5(_namespace, _manufacturerKey);
   static String modelUUID = _uuid.v5(_namespace, _modelKey);
+  static String exitProvisioningUUID = _uuid.v5(_namespace, _exitProvisioningKey);
+  static String agentVersionUUID = _uuid.v5(_namespace, _agentVersionKey);
 
   static const String _namespace = '74a942f4-0f45-43f4-88ca-f87021ae36ea';
   static const String _serviceNameKey = 'viam-provisioning';
@@ -29,5 +31,7 @@ class ViamBluetoothUUIDs {
   static const String _fragmentKey = 'fragment_id';
   static const String _manufacturerKey = 'manufacturer';
   static const String _modelKey = 'model';
+  static const String _exitProvisioningKey = 'exit_provisioning';
+  static const String _agentVersionKey = 'agent_version';
   static final _uuid = Uuid();
 }

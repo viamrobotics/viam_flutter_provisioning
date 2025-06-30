@@ -2,7 +2,6 @@ part of '../viam_bluetooth_provisioning.dart';
 
 class ViamBluetoothProvisioning {
   static Future<void> initialize({Function(bool)? poweredOn}) async {
-    FlutterBluePlus.setLogLevel(LogLevel.verbose, color: false);
     FlutterBluePlus.adapterState.listen((BluetoothAdapterState state) {
       if (state == BluetoothAdapterState.on) {
         poweredOn?.call(true);

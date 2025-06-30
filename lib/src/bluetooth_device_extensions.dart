@@ -42,6 +42,7 @@ extension ViamReading on BluetoothDevice {
     return (isConfigured: isConfigured, isConnected: isConnected);
   }
 
+  /// Errors are returned in a list ordered from oldest to newest.
   Future<List<String>> readErrors() async {
     List<BluetoothService> services = await discoverServices();
 

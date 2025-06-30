@@ -98,7 +98,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     try {
       final errors = await widget.device.readErrors();
       setState(() {
-        _errors = errors.join('\n');
+        _errors = errors.join('\n\n');
       });
     } catch (e) {
       debugPrint('Error reading errors: ${e.toString()}');

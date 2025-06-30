@@ -50,7 +50,7 @@ extension ViamReading on BluetoothDevice {
 
     final errorsCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.errorsUUID);
     final errorsBytes = await errorsCharacteristic.read();
-    final errorsString = String.fromCharCodes(errorsBytes); // not decoding with uf8 or it stops at first null byte
+    final errorsString = String.fromCharCodes(errorsBytes); // not decoding with utf8 or it stops at first null byte
     // split by null bytes and filter out empty strings
     final errorList = errorsString.split('\x00').where((error) => error.isNotEmpty).toList();
     return errorList;

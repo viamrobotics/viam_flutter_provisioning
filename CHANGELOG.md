@@ -1,3 +1,7 @@
+## 0.0.10
+
+- Re-write error reading to expose full list of errors
+
 ## 0.0.9
 
 - New characteristic to write to exit provisioning

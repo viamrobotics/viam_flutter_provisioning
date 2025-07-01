@@ -1,3 +1,7 @@
+## 0.0.11
+
+- Throwing when can't find specific ble service or characteristic with id
+
 ## 0.0.10
 
 - Re-write error reading to expose full list of errors

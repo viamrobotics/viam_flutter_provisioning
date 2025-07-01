@@ -42,14 +42,18 @@ extension ViamReading on BluetoothDevice {
     return (isConfigured: isConfigured, isConnected: isConnected);
   }
 
-  Future<String> readErrors() async {
+  /// Errors are returned in a list ordered from oldest to newest.
+  Future<List<String>> readErrors() async {
     List<BluetoothService> services = await discoverServices();
 
     final bleService = services.firstWhere((service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID);
 
     final errorsCharacteristic = bleService.characteristics.firstWhere((char) => char.uuid.str == ViamBluetoothUUIDs.errorsUUID);
     final errorsBytes = await errorsCharacteristic.read();
-    return utf8.decode(errorsBytes);
+    final errorsString = String.fromCharCodes(errorsBytes); // not decoding with utf8 or it stops at first null byte
+    // split by null bytes and filter out empty strings
+    final errorList = errorsString.split('\x00').where((error) => error.isNotEmpty).toList();
+    return errorList;
   }
 
   Future<String> readFragmentId() async {

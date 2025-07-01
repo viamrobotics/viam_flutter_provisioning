@@ -21,12 +21,15 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
   List<String> _networkList = [];
 
   bool _isLoadingNetworkList = false;
+  bool _isLoadingErrors = false;
   bool _isWritingNetworkConfig = false;
   bool _isWritingRobotPartConfig = false;
 
   bool _isLoadingStatus = false;
   bool _isConfigured = false;
   bool _isConnected = false;
+
+  String _errors = '';
 
   @override
   void initState() {
@@ -84,6 +87,24 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     } finally {
       setState(() {
         _isLoadingStatus = false;
+      });
+    }
+  }
+
+  void _readErrors() async {
+    setState(() {
+      _isLoadingErrors = true;
+    });
+    try {
+      final errors = await widget.device.readErrors();
+      setState(() {
+        _errors = errors.join('\n\n');
+      });
+    } catch (e) {
+      debugPrint('Error reading errors: ${e.toString()}');
+    } finally {
+      setState(() {
+        _isLoadingErrors = false;
       });
     }
   }
@@ -168,6 +189,12 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
               FilledButton(
                 onPressed: _isLoadingStatus ? null : _readStatus,
                 child: _isLoadingStatus ? const CircularProgressIndicator.adaptive() : const Text('Read Status'),
+              ),
+              const SizedBox(height: 16),
+              Text(_errors),
+              FilledButton(
+                onPressed: _isLoadingErrors ? null : _readErrors,
+                child: _isLoadingErrors ? const CircularProgressIndicator.adaptive() : const Text('Read Errors'),
               ),
               const SizedBox(height: 16),
               TextField(

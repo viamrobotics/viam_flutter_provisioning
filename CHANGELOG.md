@@ -1,3 +1,7 @@
+## 0.0.12
+
+- Unsecured networks pass emptry string for PSK instead of `NONE`
+
 ## 0.0.11
 
 - Throwing when can't find specific ble service or characteristic with id

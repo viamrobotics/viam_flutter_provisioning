@@ -166,7 +166,7 @@ extension ViamWriting on BluetoothDevice {
     );
     await ssidCharacteristic.write(encodedSSID);
 
-    final encodedPW = encoder.process(utf8.encode('$psk:${pw ?? 'NONE'}'));
+    final encodedPW = encoder.process(utf8.encode('$psk:${pw ?? ''}'));
     final pskCharacteristic = bleService.characteristics.firstWhere(
       (char) => char.uuid.str == ViamBluetoothUUIDs.pskUUID,
       orElse: () => throw Exception('pskCharacteristic not found'),

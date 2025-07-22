@@ -241,6 +241,29 @@ extension ViamWriting on BluetoothDevice {
     await exitProvisioningCharacteristic.write(encoder.process(utf8.encode("$psk:1")));
   }
 
+  Future<void> unlockPairing({String psk = 'viamsetup'}) async {
+    List<BluetoothService> services = await discoverServices();
+
+    final bleService = services.firstWhere(
+      (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
+      orElse: () => throw Exception('bleService not found'),
+    );
+    final cryptoCharacteristic = bleService.characteristics.firstWhere(
+      (char) => char.uuid.str == ViamBluetoothUUIDs.cryptoUUID,
+      orElse: () => throw Exception('cryptoCharacteristic not found'),
+    );
+
+    final publicKeyBytes = await cryptoCharacteristic.read();
+    final publicKey = _publicKey(Uint8List.fromList(publicKeyBytes));
+    final encoder = _encoder(publicKey);
+
+    final unlockPairingCharacteristic = bleService.characteristics.firstWhere(
+      (char) => char.uuid.str == ViamBluetoothUUIDs.unlockPairingUUID,
+      orElse: () => throw Exception('unlockPairingCharacteristic not found'),
+    );
+    await unlockPairingCharacteristic.write(encoder.process(utf8.encode("$psk:1")));
+  }
+
   static RSAPublicKey _publicKey(Uint8List keyBytes) {
     final parser = ASN1Parser(keyBytes);
     final topLevelSeq = parser.nextObject() as ASN1Sequence;

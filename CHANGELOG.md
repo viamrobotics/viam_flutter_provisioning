@@ -1,3 +1,7 @@
+## 0.0.13
+
+- Add unlock pairing write to support tethering
+
 ## 0.0.12
 
 - Unsecured networks pass emptry string for PSK instead of `NONE`

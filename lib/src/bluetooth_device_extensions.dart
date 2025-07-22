@@ -261,6 +261,7 @@ extension ViamWriting on BluetoothDevice {
       (char) => char.uuid.str == ViamBluetoothUUIDs.unlockPairingUUID,
       orElse: () => throw Exception('unlockPairingCharacteristic not found'),
     );
+    // "1" is expected by the device
     await unlockPairingCharacteristic.write(encoder.process(utf8.encode("$psk:1")));
   }
 

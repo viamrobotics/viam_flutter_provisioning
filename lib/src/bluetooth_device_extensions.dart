@@ -4,7 +4,7 @@ part of '../viam_bluetooth_provisioning.dart';
 
 extension ViamReading on BluetoothDevice {
   Future<List<WifiNetwork>> readNetworkList() async {
-    List<BluetoothService> services = await discoverServices();
+    List<BluetoothService> services = await discoverServices(subscribeToServicesChanged: false);
 
     final bleService = services.firstWhere(
       (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
@@ -20,7 +20,7 @@ extension ViamReading on BluetoothDevice {
   }
 
   Future<({bool isConfigured, bool isConnected})> readStatus() async {
-    List<BluetoothService> services = await discoverServices();
+    List<BluetoothService> services = await discoverServices(subscribeToServicesChanged: false);
 
     final bleService = services.firstWhere(
       (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
@@ -53,7 +53,7 @@ extension ViamReading on BluetoothDevice {
 
   /// Errors are returned in a list ordered from oldest to newest.
   Future<List<String>> readErrors() async {
-    List<BluetoothService> services = await discoverServices();
+    List<BluetoothService> services = await discoverServices(subscribeToServicesChanged: false);
 
     final bleService = services.firstWhere(
       (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
@@ -72,7 +72,7 @@ extension ViamReading on BluetoothDevice {
   }
 
   Future<String> readFragmentId() async {
-    List<BluetoothService> services = await discoverServices();
+    List<BluetoothService> services = await discoverServices(subscribeToServicesChanged: false);
 
     final bleService = services.firstWhere(
       (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
@@ -88,7 +88,7 @@ extension ViamReading on BluetoothDevice {
   }
 
   Future<String> readManufacturer() async {
-    List<BluetoothService> services = await discoverServices();
+    List<BluetoothService> services = await discoverServices(subscribeToServicesChanged: false);
 
     final bleService = services.firstWhere(
       (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
@@ -104,7 +104,7 @@ extension ViamReading on BluetoothDevice {
   }
 
   Future<String> readModel() async {
-    List<BluetoothService> services = await discoverServices();
+    List<BluetoothService> services = await discoverServices(subscribeToServicesChanged: false);
 
     final bleService = services.firstWhere(
       (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
@@ -120,7 +120,7 @@ extension ViamReading on BluetoothDevice {
   }
 
   Future<String> readAgentVersion() async {
-    List<BluetoothService> services = await discoverServices();
+    List<BluetoothService> services = await discoverServices(subscribeToServicesChanged: false);
 
     final bleService = services.firstWhere(
       (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
@@ -144,7 +144,7 @@ extension ViamWriting on BluetoothDevice {
     String? pw,
     String psk = 'viamsetup',
   }) async {
-    List<BluetoothService> services = await discoverServices();
+    List<BluetoothService> services = await discoverServices(subscribeToServicesChanged: false);
 
     final bleService = services.firstWhere(
       (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
@@ -180,7 +180,7 @@ extension ViamWriting on BluetoothDevice {
     String appAddress = 'https://app.viam.com:443',
     String psk = 'viamsetup',
   }) async {
-    List<BluetoothService> services = await discoverServices();
+    List<BluetoothService> services = await discoverServices(subscribeToServicesChanged: false);
 
     final bleService = services.firstWhere(
       (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
@@ -218,7 +218,7 @@ extension ViamWriting on BluetoothDevice {
   }
 
   Future<void> exitProvisioning({String psk = 'viamsetup'}) async {
-    List<BluetoothService> services = await discoverServices();
+    List<BluetoothService> services = await discoverServices(subscribeToServicesChanged: false);
 
     final bleService = services.firstWhere(
       (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
@@ -242,7 +242,7 @@ extension ViamWriting on BluetoothDevice {
   }
 
   Future<void> unlockPairing({String psk = 'viamsetup'}) async {
-    List<BluetoothService> services = await discoverServices();
+    List<BluetoothService> services = await discoverServices(subscribeToServicesChanged: false);
 
     final bleService = services.firstWhere(
       (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,

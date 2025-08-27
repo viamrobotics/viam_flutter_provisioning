@@ -4,12 +4,7 @@ part of '../viam_bluetooth_provisioning.dart';
 
 extension ViamReading on BluetoothDevice {
   Future<List<WifiNetwork>> readNetworkList() async {
-    List<BluetoothService> services = await discoverServices();
-
-    final bleService = services.firstWhere(
-      (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
-      orElse: () => throw Exception('bleService not found'),
-    );
+    final bleService = await getBleService();
     final networkListCharacteristic = bleService.characteristics.firstWhere(
       (char) => char.uuid.str == ViamBluetoothUUIDs.availableWiFiNetworksUUID,
       orElse: () => throw Exception('networkListCharacteristic not found'),
@@ -19,13 +14,25 @@ extension ViamReading on BluetoothDevice {
     return ViamBluetoothProvisioning.convertNetworkListBytes(Uint8List.fromList(networkListBytes));
   }
 
-  Future<({bool isConfigured, bool isConnected})> readStatus() async {
-    List<BluetoothService> services = await discoverServices();
+  Future<BluetoothService> getBleService({attempts = 2}) async {
+    for (int i = 0; i < attempts; i++) {
+      List<BluetoothService> services = await discoverServices();
+      final bleService = services
+          .where(
+            (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
+          )
+          .firstOrNull;
+      if (bleService != null) return bleService;
+      if (i < attempts - 1) {
+        debugPrint("clearing gatt cache");
+        await clearGattCache();
+      }
+    }
+    throw Exception('bleService not found after $attempts attempts');
+  }
 
-    final bleService = services.firstWhere(
-      (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
-      orElse: () => throw Exception('bleService not found'),
-    );
+  Future<({bool isConfigured, bool isConnected})> readStatus() async {
+    final bleService = await getBleService();
     final statusCharacteristic = bleService.characteristics.firstWhere(
       (char) => char.uuid.str == ViamBluetoothUUIDs.statusUUID,
       orElse: () => throw Exception('statusCharacteristic not found'),
@@ -53,12 +60,7 @@ extension ViamReading on BluetoothDevice {
 
   /// Errors are returned in a list ordered from oldest to newest.
   Future<List<String>> readErrors() async {
-    List<BluetoothService> services = await discoverServices();
-
-    final bleService = services.firstWhere(
-      (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
-      orElse: () => throw Exception('bleService not found'),
-    );
+    final bleService = await getBleService();
     final errorsCharacteristic = bleService.characteristics.firstWhere(
       (char) => char.uuid.str == ViamBluetoothUUIDs.errorsUUID,
       orElse: () => throw Exception('errorsCharacteristic not found'),
@@ -72,12 +74,7 @@ extension ViamReading on BluetoothDevice {
   }
 
   Future<String> readFragmentId() async {
-    List<BluetoothService> services = await discoverServices();
-
-    final bleService = services.firstWhere(
-      (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
-      orElse: () => throw Exception('bleService not found'),
-    );
+    final bleService = await getBleService();
     final fragmentIdCharacteristic = bleService.characteristics.firstWhere(
       (char) => char.uuid.str == ViamBluetoothUUIDs.fragmentUUID,
       orElse: () => throw Exception('fragmentIdCharacteristic not found'),
@@ -88,12 +85,7 @@ extension ViamReading on BluetoothDevice {
   }
 
   Future<String> readManufacturer() async {
-    List<BluetoothService> services = await discoverServices();
-
-    final bleService = services.firstWhere(
-      (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
-      orElse: () => throw Exception('bleService not found'),
-    );
+    final bleService = await getBleService();
     final manufacturerCharacteristic = bleService.characteristics.firstWhere(
       (char) => char.uuid.str == ViamBluetoothUUIDs.manufacturerUUID,
       orElse: () => throw Exception('manufacturerCharacteristic not found'),
@@ -104,12 +96,7 @@ extension ViamReading on BluetoothDevice {
   }
 
   Future<String> readModel() async {
-    List<BluetoothService> services = await discoverServices();
-
-    final bleService = services.firstWhere(
-      (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
-      orElse: () => throw Exception('bleService not found'),
-    );
+    final bleService = await getBleService();
     final modelCharacteristic = bleService.characteristics.firstWhere(
       (char) => char.uuid.str == ViamBluetoothUUIDs.modelUUID,
       orElse: () => throw Exception('modelCharacteristic not found'),
@@ -120,12 +107,7 @@ extension ViamReading on BluetoothDevice {
   }
 
   Future<String> readAgentVersion() async {
-    List<BluetoothService> services = await discoverServices();
-
-    final bleService = services.firstWhere(
-      (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
-      orElse: () => throw Exception('bleService not found'),
-    );
+    final bleService = await getBleService();
     final agentVersionCharacteristic = bleService.characteristics.firstWhere(
       (char) => char.uuid.str == ViamBluetoothUUIDs.agentVersionUUID,
       orElse: () => throw Exception('agentVersionCharacteristic not found'),
@@ -144,12 +126,7 @@ extension ViamWriting on BluetoothDevice {
     String? pw,
     String psk = 'viamsetup',
   }) async {
-    List<BluetoothService> services = await discoverServices();
-
-    final bleService = services.firstWhere(
-      (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
-      orElse: () => throw Exception('bleService not found'),
-    );
+    final bleService = await getBleService();
     final cryptoCharacteristic = bleService.characteristics.firstWhere(
       (char) => char.uuid.str == ViamBluetoothUUIDs.cryptoUUID,
       orElse: () => throw Exception('cryptoCharacteristic not found'),
@@ -180,12 +157,7 @@ extension ViamWriting on BluetoothDevice {
     String appAddress = 'https://app.viam.com:443',
     String psk = 'viamsetup',
   }) async {
-    List<BluetoothService> services = await discoverServices();
-
-    final bleService = services.firstWhere(
-      (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
-      orElse: () => throw Exception('bleService not found'),
-    );
+    final bleService = await getBleService();
     final cryptoCharacteristic = bleService.characteristics.firstWhere(
       (char) => char.uuid.str == ViamBluetoothUUIDs.cryptoUUID,
       orElse: () => throw Exception('cryptoCharacteristic not found'),
@@ -218,12 +190,7 @@ extension ViamWriting on BluetoothDevice {
   }
 
   Future<void> exitProvisioning({String psk = 'viamsetup'}) async {
-    List<BluetoothService> services = await discoverServices();
-
-    final bleService = services.firstWhere(
-      (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
-      orElse: () => throw Exception('bleService not found'),
-    );
+    final bleService = await getBleService();
     final cryptoCharacteristic = bleService.characteristics.firstWhere(
       (char) => char.uuid.str == ViamBluetoothUUIDs.cryptoUUID,
       orElse: () => throw Exception('cryptoCharacteristic not found'),
@@ -242,12 +209,7 @@ extension ViamWriting on BluetoothDevice {
   }
 
   Future<void> unlockPairing({String psk = 'viamsetup'}) async {
-    List<BluetoothService> services = await discoverServices();
-
-    final bleService = services.firstWhere(
-      (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
-      orElse: () => throw Exception('bleService not found'),
-    );
+    final bleService = await getBleService();
     final cryptoCharacteristic = bleService.characteristics.firstWhere(
       (char) => char.uuid.str == ViamBluetoothUUIDs.cryptoUUID,
       orElse: () => throw Exception('cryptoCharacteristic not found'),

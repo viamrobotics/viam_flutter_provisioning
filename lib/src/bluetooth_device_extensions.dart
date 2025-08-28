@@ -24,7 +24,6 @@ extension ViamReading on BluetoothDevice {
           .firstOrNull;
       if (bleService != null) return bleService;
       if (i < attempts - 1) {
-        // debugPrint("clearing gatt cache");
         await clearGattCache();
       }
     }

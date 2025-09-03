@@ -1,3 +1,7 @@
+## 0.0.14
+
+- fix discoverServices failure with clearGattCache
+
 ## 0.0.13
 
 - Add unlock pairing write to support tethering

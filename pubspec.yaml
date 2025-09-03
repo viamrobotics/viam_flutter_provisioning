@@ -1,8 +1,8 @@
 name: viam_flutter_provisioning
 description: Plugin to provision Viam machines using bluetooth and other methods
 repository: https://github.com/viamrobotics/viam_flutter_provisioning
-version: 0.0.13
-homepage:
+version: 0.0.14
+homepage: https://www.viam.com
 
 environment:
   sdk: '>=3.6.1 <4.0.0'

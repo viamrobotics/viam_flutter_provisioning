@@ -1,6 +1,8 @@
 part of '../viam_bluetooth_provisioning.dart';
 
 class ViamBluetoothProvisioning {
+  static Future<bool> get isOn async => await FlutterBluePlus.adapterState.first == BluetoothAdapterState.on;
+
   static Future<void> initialize({Function(bool)? poweredOn}) async {
     FlutterBluePlus.adapterState.listen((BluetoothAdapterState state) {
       if (state == BluetoothAdapterState.on) {

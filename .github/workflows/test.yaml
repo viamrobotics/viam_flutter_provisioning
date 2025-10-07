@@ -17,6 +17,7 @@ jobs:
 
       - run: flutter --version
       - run: flutter pub get
+      - run: cd viam_example_app && flutter pub get
 
        # Verify formatting in all dart files
       - name: Verify formatting

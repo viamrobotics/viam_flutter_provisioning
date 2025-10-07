@@ -1,3 +1,7 @@
+## 0.0.15
+
+- running on Flutter 3.35.5 now
+
 ## 0.0.14
 
 - fix discoverServices failure with clearGattCache

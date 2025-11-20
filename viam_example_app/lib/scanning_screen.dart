@@ -17,6 +17,7 @@ class _ScanningScreen extends State<ScanningScreen> {
   final Set<String> _deviceIds = {};
   List<ScanResult> _uniqueDevices = [];
   bool _isConnecting = false;
+  final ViamBluetoothProvisioning _viamBluetoothProvisioning = ViamBluetoothProvisioning();
 
   @override
   void initState() {
@@ -31,7 +32,7 @@ class _ScanningScreen extends State<ScanningScreen> {
   }
 
   void _initialize() async {
-    await ViamBluetoothProvisioning.initialize(poweredOn: (poweredOn) {
+    _viamBluetoothProvisioning.initialize(poweredOn: (poweredOn) {
       if (poweredOn) {
         _startScan();
       }
@@ -39,7 +40,7 @@ class _ScanningScreen extends State<ScanningScreen> {
   }
 
   void _startScan() async {
-    final stream = await ViamBluetoothProvisioning.scanForPeripherals();
+    final stream = await _viamBluetoothProvisioning.scanForPeripherals();
     _scanSubscription = stream.listen((device) {
       setState(() {
         for (final result in device) {

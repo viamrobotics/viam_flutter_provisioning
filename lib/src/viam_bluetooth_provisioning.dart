@@ -1,7 +1,7 @@
 part of '../viam_bluetooth_provisioning.dart';
 
 class ViamBluetoothProvisioning {
-  static Future<void> initialize({Function(bool)? poweredOn}) async {
+  void initialize({Function(bool)? poweredOn}) {
     FlutterBluePlus.adapterState.listen((BluetoothAdapterState state) {
       if (state == BluetoothAdapterState.on) {
         poweredOn?.call(true);
@@ -12,7 +12,7 @@ class ViamBluetoothProvisioning {
   }
 
   /// Scans for peripherals with the Viam bluetooth provisioning service UUID
-  static Future<Stream<List<ScanResult>>> scanForPeripherals() async {
+  Future<Stream<List<ScanResult>>> scanForPeripherals() async {
     await FlutterBluePlus.startScan(withServices: [Guid(ViamBluetoothUUIDs.serviceUUID)]);
     return FlutterBluePlus.onScanResults;
   }

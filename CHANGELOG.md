@@ -1,3 +1,7 @@
+## 0.0.16
+
+- `ViamBluetoothProvisioning` methods made non-static for mocking
+
 ## 0.0.15
 
 - running on Flutter 3.35.5 now

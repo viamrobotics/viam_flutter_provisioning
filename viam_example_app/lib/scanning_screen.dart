@@ -67,12 +67,12 @@ class _ScanningScreen extends State<ScanningScreen> {
       await device.connect();
       _pushToConnectedScreen(device);
     } catch (e) {
-      // ignore: avoid_print
-      print(e);
+      debugPrint('Error connecting to device: ${e.toString()}');
+    } finally {
+      setState(() {
+        _isConnecting = false;
+      });
     }
-    setState(() {
-      _isConnecting = false;
-    });
   }
 
   void _pushToConnectedScreen(BluetoothDevice device) {

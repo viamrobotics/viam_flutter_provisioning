@@ -60,8 +60,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
         _isLoadingNetworkList = false;
       });
     } catch (e) {
-      // ignore: avoid_print
-      print('Error reading network list: ${e.toString()}');
+      debugPrint('Error reading network list: ${e.toString()}');
     } finally {
       setState(() {
         _isLoadingNetworkList = false;
@@ -82,8 +81,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
         _isConnected = isConnected;
       });
     } catch (e) {
-      // ignore: avoid_print
-      print('Error reading status: ${e.toString()}');
+      debugPrint('Error reading status: ${e.toString()}');
     } finally {
       setState(() {
         _isLoadingStatus = false;
@@ -122,8 +120,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
       );
       _showSnackBar('Wrote network config');
     } catch (e) {
-      // ignore: avoid_print
-      print('Error writing network config: ${e.toString()}');
+      debugPrint('Error writing network config: ${e.toString()}');
     } finally {
       setState(() {
         _isWritingNetworkConfig = false;
@@ -146,8 +143,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
       );
       _showSnackBar('Wrote robot part config');
     } catch (e) {
-      // ignore: avoid_print
-      print('Error writing robot part config: ${e.toString()}');
+      debugPrint('Error writing robot part config: ${e.toString()}');
     } finally {
       setState(() {
         _isWritingRobotPartConfig = false;

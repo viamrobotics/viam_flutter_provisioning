@@ -85,7 +85,7 @@ After connecting, the Viam specific extensions for reading and writing can be ca
   );
   await device.writeRobotPartConfig(
     partId: 'id',
-    secret: 'secret,
+    secret: 'secret',
   );
   await device.exitProvisioning();
 ```

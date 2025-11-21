@@ -24,6 +24,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
   bool _isLoadingErrors = false;
   bool _isWritingNetworkConfig = false;
   bool _isWritingRobotPartConfig = false;
+  bool _isExitingProvisioning = false;
 
   bool _isLoadingStatus = false;
   bool _isConfigured = false;
@@ -49,7 +50,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     super.dispose();
   }
 
-  void _readNetworkList() async {
+  Future<void> _readNetworkList() async {
     setState(() {
       _isLoadingNetworkList = true;
     });
@@ -68,7 +69,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     }
   }
 
-  void _readStatus() async {
+  Future<void> _readStatus() async {
     setState(() {
       _isLoadingStatus = true;
     });
@@ -89,7 +90,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     }
   }
 
-  void _readErrors() async {
+  Future<void> _readErrors() async {
     setState(() {
       _isLoadingErrors = true;
     });
@@ -107,7 +108,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     }
   }
 
-  void _writeNetworkConfig() async {
+  Future<void> _writeNetworkConfig() async {
     setState(() {
       _isWritingNetworkConfig = true;
     });
@@ -128,7 +129,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     }
   }
 
-  void _writeRobotPartConfig() async {
+  Future<void> _writeRobotPartConfig() async {
     setState(() {
       _isWritingRobotPartConfig = true;
     });
@@ -151,6 +152,22 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     }
   }
 
+  Future<void> _exitProvisioning() async {
+    setState(() {
+      _isExitingProvisioning = true;
+    });
+    try {
+      await widget.device.exitProvisioning();
+      _showSnackBar('Exited provisioning');
+    } catch (e) {
+      debugPrint('Error exiting provisioning: ${e.toString()}');
+    } finally {
+      setState(() {
+        _isExitingProvisioning = false;
+      });
+    }
+  }
+
   void _selectedSSID(String ssid) {
     setState(() {
       _ssidTextController.text = ssid;
@@ -159,13 +176,11 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
   }
 
   void _showSnackBar(String message) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-        ),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
   }
 
   @override
@@ -224,6 +239,12 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
                 onPressed: _writeRobotPartConfig,
                 child: _isWritingRobotPartConfig ? const CircularProgressIndicator.adaptive() : const Text('Write Robot Part Config'),
               ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: _exitProvisioning,
+                child: _isExitingProvisioning ? const CircularProgressIndicator.adaptive() : const Text('Exit Provisioning'),
+              ),
+              const SizedBox(height: 8),
               if (_isLoadingNetworkList)
                 const Center(child: CircularProgressIndicator())
               else

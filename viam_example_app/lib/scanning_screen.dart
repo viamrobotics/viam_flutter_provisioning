@@ -31,7 +31,7 @@ class _ScanningScreen extends State<ScanningScreen> {
     super.dispose();
   }
 
-  void _initialize() async {
+  void _initialize() {
     _viamBluetoothProvisioning.initialize(poweredOn: (poweredOn) {
       if (poweredOn) {
         _startScan();
@@ -39,7 +39,7 @@ class _ScanningScreen extends State<ScanningScreen> {
     });
   }
 
-  void _startScan() async {
+  Future<void> _startScan() async {
     final stream = await _viamBluetoothProvisioning.scanForPeripherals();
     _scanSubscription = stream.listen((device) {
       setState(() {
@@ -59,7 +59,7 @@ class _ScanningScreen extends State<ScanningScreen> {
     _scanSubscription = null;
   }
 
-  void _connect(BluetoothDevice device) async {
+  Future<void> _connect(BluetoothDevice device) async {
     setState(() {
       _isConnecting = true;
     });
@@ -76,14 +76,12 @@ class _ScanningScreen extends State<ScanningScreen> {
   }
 
   void _pushToConnectedScreen(BluetoothDevice device) {
-    if (context.mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ProvisionPeripheralScreen(device: device),
-        ),
-      );
-    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProvisionPeripheralScreen(device: device),
+      ),
+    );
   }
 
   @override

@@ -24,6 +24,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
   bool _isLoadingErrors = false;
   bool _isWritingNetworkConfig = false;
   bool _isWritingRobotPartConfig = false;
+  bool _isExitingProvisioning = false;
 
   bool _isLoadingStatus = false;
   bool _isConfigured = false;
@@ -155,6 +156,22 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     }
   }
 
+  Future<void> _exitProvisioning() async {
+    setState(() {
+      _isExitingProvisioning = true;
+    });
+    try {
+      await widget.device.exitProvisioning();
+      _showSnackBar('Exited provisioning');
+    } catch (e) {
+      debugPrint('Error exiting provisioning: ${e.toString()}');
+    } finally {
+      setState(() {
+        _isExitingProvisioning = false;
+      });
+    }
+  }
+
   void _selectedSSID(String ssid) {
     setState(() {
       _ssidTextController.text = ssid;
@@ -226,6 +243,12 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
                 onPressed: _writeRobotPartConfig,
                 child: _isWritingRobotPartConfig ? const CircularProgressIndicator.adaptive() : const Text('Write Robot Part Config'),
               ),
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: _exitProvisioning,
+                child: _isExitingProvisioning ? const CircularProgressIndicator.adaptive() : const Text('Exit Provisioning'),
+              ),
+              const SizedBox(height: 8),
               if (_isLoadingNetworkList)
                 const Center(child: CircularProgressIndicator())
               else

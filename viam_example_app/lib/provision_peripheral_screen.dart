@@ -49,7 +49,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     super.dispose();
   }
 
-  void _readNetworkList() async {
+  Future<void> _readNetworkList() async {
     setState(() {
       _isLoadingNetworkList = true;
     });
@@ -69,7 +69,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     }
   }
 
-  void _readStatus() async {
+  Future<void> _readStatus() async {
     setState(() {
       _isLoadingStatus = true;
     });
@@ -91,7 +91,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     }
   }
 
-  void _readErrors() async {
+  Future<void> _readErrors() async {
     setState(() {
       _isLoadingErrors = true;
     });
@@ -109,7 +109,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     }
   }
 
-  void _writeNetworkConfig() async {
+  Future<void> _writeNetworkConfig() async {
     setState(() {
       _isWritingNetworkConfig = true;
     });
@@ -131,7 +131,7 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     }
   }
 
-  void _writeRobotPartConfig() async {
+  Future<void> _writeRobotPartConfig() async {
     setState(() {
       _isWritingRobotPartConfig = true;
     });
@@ -163,13 +163,11 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
   }
 
   void _showSnackBar(String message) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-        ),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+      ),
+    );
   }
 
   @override

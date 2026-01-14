@@ -17,6 +17,8 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
   final TextEditingController _partIdTextController = TextEditingController();
   final TextEditingController _secretTextController = TextEditingController();
   final TextEditingController _appAddressTextController = TextEditingController();
+  final TextEditingController _apiKeyIdTextController = TextEditingController();
+  final TextEditingController _apiKeyKeyTextController = TextEditingController();
 
   List<String> _networkList = [];
 
@@ -47,6 +49,8 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
     _partIdTextController.dispose();
     _secretTextController.dispose();
     _appAddressTextController.dispose();
+    _apiKeyIdTextController.dispose();
+    _apiKeyKeyTextController.dispose();
     super.dispose();
   }
 
@@ -137,10 +141,18 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
       final partId = _partIdTextController.text;
       final secret = _secretTextController.text;
       final appAddress = _appAddressTextController.text;
+      final apiKeyId = _apiKeyIdTextController.text.trim();
+      final apiKeyKey = _apiKeyKeyTextController.text.trim();
+
+      APIKey? apiKey;
+      if (apiKeyId.isNotEmpty && apiKeyKey.isNotEmpty) {
+        apiKey = APIKey(id: apiKeyId, key: apiKeyKey);
+      }
       await widget.device.writeRobotPartConfig(
         partId: partId,
         secret: secret,
         appAddress: appAddress,
+        apiKey: apiKey,
       );
       _showSnackBar('Wrote robot part config');
     } catch (e) {
@@ -229,6 +241,14 @@ class _ProvisionPeripheralScreen extends State<ProvisionPeripheralScreen> {
               TextField(
                 controller: _secretTextController,
                 decoration: const InputDecoration(labelText: 'Secret'),
+              ),
+              TextField(
+                controller: _apiKeyIdTextController,
+                decoration: const InputDecoration(labelText: 'API Key ID', hintText: '(will be used instead of secret if provided)'),
+              ),
+              TextField(
+                controller: _apiKeyKeyTextController,
+                decoration: const InputDecoration(labelText: 'API Key', hintText: '(will be used instead of secret if provided)'),
               ),
               TextField(
                 controller: _appAddressTextController,

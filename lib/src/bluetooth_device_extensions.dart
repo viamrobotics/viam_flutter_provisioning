@@ -5,9 +5,9 @@ part of '../viam_bluetooth_provisioning.dart';
 class APIKey {
   final String id;
   final String key;
-  
+
   APIKey({required this.id, required this.key});
-  
+
   String toJson() {
     return jsonEncode({'id': id, 'key': key});
   }
@@ -166,7 +166,7 @@ extension ViamWriting on BluetoothDevice {
   Future<void> writeRobotPartConfig({
     required String partId,
     required String secret,
-    APIKey? apiKey, 
+    APIKey? apiKey,
     String appAddress = 'https://app.viam.com:443',
     String psk = 'viamsetup',
   }) async {

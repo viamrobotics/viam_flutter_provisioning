@@ -1,6 +1,5 @@
 part of '../viam_bluetooth_provisioning.dart';
 
-
 // Reading
 
 extension ViamReading on BluetoothDevice {

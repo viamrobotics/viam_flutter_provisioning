@@ -1,17 +1,5 @@
 part of '../viam_bluetooth_provisioning.dart';
 
-// Definitions
-
-class APIKey {
-  final String id;
-  final String key;
-
-  APIKey({required this.id, required this.key});
-
-  String toJson() {
-    return jsonEncode({'id': id, 'key': key});
-  }
-}
 
 // Reading
 

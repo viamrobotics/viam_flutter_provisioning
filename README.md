@@ -83,15 +83,15 @@ After connecting, the Viam specific extensions for reading and writing can be ca
     ssid: 'Network',
     pw: 'password',
   );
-await device.writeRobotPartConfig(
-  partId: 'id',
-  secret: 'secret',
-  // apiKey is the preferred but optional authentication method
-  apiKey: APIKey(
-    id: 'keyID',
-    key: 'key'
-  ),
-);
+  await device.writeRobotPartConfig(
+    partId: 'id',
+    secret: 'secret',
+    // apiKey is the preferred but optional authentication method
+    apiKey: APIKey(
+      id: 'keyID',
+      key: 'key'
+    ),
+  );
   await device.exitProvisioning();
 ```
 

@@ -7,6 +7,7 @@ class ViamBluetoothUUIDs {
   static String pskUUID = _uuid.v5(_namespace, _pskKey);
   static String robotPartUUID = _uuid.v5(_namespace, _robotPartIDKey);
   static String robotPartSecretUUID = _uuid.v5(_namespace, _robotPartSecretKey);
+  static String apiKeyCredsUUID = _uuid.v5(_namespace, _apiKeyCredsKey);
   static String appAddressUUID = _uuid.v5(_namespace, _appAddressKey);
   static String statusUUID = _uuid.v5(_namespace, _statusKey);
   static String cryptoUUID = _uuid.v5(_namespace, _cryptoKey);
@@ -25,6 +26,7 @@ class ViamBluetoothUUIDs {
   static const String _pskKey = 'psk';
   static const String _robotPartIDKey = 'id';
   static const String _robotPartSecretKey = 'secret';
+  static const String _apiKeyCredsKey = 'api_key';
   static const String _appAddressKey = 'app_address';
   static const String _statusKey = 'status';
   static const String _cryptoKey = 'pub_key';

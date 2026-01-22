@@ -14,3 +14,4 @@ part 'src/wifi_network.dart';
 part 'src/viam_bluetooth_uuids.dart';
 part 'src/viam_bluetooth_provisioning.dart';
 part 'src/bluetooth_device_extensions.dart';
+part 'src/api_key.dart';

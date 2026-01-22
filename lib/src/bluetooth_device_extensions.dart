@@ -153,6 +153,7 @@ extension ViamWriting on BluetoothDevice {
   Future<void> writeRobotPartConfig({
     required String partId,
     required String secret,
+    APIKey? apiKey,
     String appAddress = 'https://app.viam.com:443',
     String psk = 'viamsetup',
   }) async {
@@ -186,6 +187,15 @@ extension ViamWriting on BluetoothDevice {
       orElse: () => throw Exception('appAddressCharacteristic not found'),
     );
     await appAddressCharacteristic.write(encodedAppAddress);
+
+    if (apiKey != null) {
+      final encodedApiKey = encoder.process(utf8.encode('$psk:${apiKey.toJson()}'));
+      final apiKeyCharacteristic = bleService.characteristics.firstWhere(
+        (char) => char.uuid.str == ViamBluetoothUUIDs.apiKeyCredsUUID,
+        orElse: () => throw Exception('apiKeyCharacteristic not found'),
+      );
+      await apiKeyCharacteristic.write(encodedApiKey);
+    }
   }
 
   Future<void> exitProvisioning({String psk = 'viamsetup'}) async {

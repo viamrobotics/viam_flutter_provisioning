@@ -1,3 +1,7 @@
+## 0.0.17
+
+- Added API key BT characteristic
+
 ## 0.0.16
 
 - `ViamBluetoothProvisioning` methods made non-static for mocking

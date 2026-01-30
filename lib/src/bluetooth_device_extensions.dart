@@ -24,7 +24,7 @@ extension ViamReading on BluetoothDevice {
           .firstOrNull;
       if (bleService != null) return bleService;
       if (i < attempts - 1) {
-        await clearGattCache();
+        if (Platform.isAndroid) await clearGattCache();
       }
     }
     throw Exception('bleService not found after $attempts attempts');

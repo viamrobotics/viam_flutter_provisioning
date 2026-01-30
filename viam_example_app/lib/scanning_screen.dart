@@ -65,6 +65,7 @@ class _ScanningScreen extends State<ScanningScreen> {
     });
     try {
       await device.connect();
+      await device.discoverServices();
       _pushToConnectedScreen(device);
     } catch (e) {
       debugPrint('Error connecting to device: ${e.toString()}');

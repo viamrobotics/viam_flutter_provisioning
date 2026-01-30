@@ -15,16 +15,17 @@ extension ViamReading on BluetoothDevice {
   }
 
   Future<BluetoothService> getBleService({attempts = 2}) async {
+    if (servicesList.isNotEmpty) {
+      final bleService = servicesList.where((s) => s.uuid.str == ViamBluetoothUUIDs.serviceUUID).firstOrNull;
+      if (bleService != null) return bleService;
+    }
+
     for (int i = 0; i < attempts; i++) {
       List<BluetoothService> services = await discoverServices();
-      final bleService = services
-          .where(
-            (service) => service.uuid.str == ViamBluetoothUUIDs.serviceUUID,
-          )
-          .firstOrNull;
+      final bleService = services.where((s) => s.uuid.str == ViamBluetoothUUIDs.serviceUUID).firstOrNull;
       if (bleService != null) return bleService;
       if (i < attempts - 1) {
-        await clearGattCache();
+        if (Platform.isAndroid) await clearGattCache();
       }
     }
     throw Exception('bleService not found after $attempts attempts');

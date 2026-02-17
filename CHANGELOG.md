@@ -1,3 +1,7 @@
+## 0.0.18
+
+- Only call `clearGattCache()` on Android
+
 ## 0.0.17
 
 - Added API key BT characteristic

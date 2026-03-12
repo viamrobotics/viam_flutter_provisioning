@@ -27,3 +27,7 @@ doc/api/
 .flutter-plugins-dependencies
 .DS_Store
 /viam_example_app/android/.kotlin
+
+# Claude Code
+.claude/worktrees
+.claude/settings.local.json
